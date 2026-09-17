@@ -355,3 +355,187 @@ describe("configurable tree card", () => {
     expect(inputs.some((input) => input.value === "0")).toBe(true);
   });
 });
+
+const ruled = [
+  {
+    ...config.overlays[0],
+    dates: { type: "fixed", from: "12-01", to: "12-26" },
+  },
+];
+const withRules = {
+  overlays: ruled,
+  config: { ...config, overlays: ruled },
+};
+
+describe("date-driven overlays", () => {
+  it("offers automatic only when an overlay carries a rule", async () => {
+    const { el } = await setup();
+    const plain = [
+      ...el.shadowRoot!.querySelectorAll(".overlay option"),
+    ] as HTMLOptionElement[];
+    expect(plain.map((o) => o.value)).toEqual(["none", "cozy"]);
+
+    const ruledCard = await setup({ ...withRules, overlay_choice: "auto" });
+    const options = [
+      ...ruledCard.el.shadowRoot!.querySelectorAll(".overlay option"),
+    ] as HTMLOptionElement[];
+    expect(options.map((o) => o.value)).toEqual(["auto", "none", "cozy"]);
+  });
+  it("names the rule-selected overlay on the automatic option", async () => {
+    const { el } = await setup({
+      ...withRules,
+      overlay_choice: "auto",
+      overlay: "cozy",
+      overlay_rule: "cozy",
+    });
+    const auto = el.shadowRoot!.querySelector(
+      '.overlay option[value="auto"]',
+    ) as HTMLOptionElement;
+    expect(auto.textContent!.trim()).toBe("Automatic · Cozy lights");
+  });
+  it("reflects the choice rather than the overlay in force", async () => {
+    const { el } = await setup({
+      ...withRules,
+      overlay_choice: "auto",
+      overlay: "cozy",
+      overlay_rule: "cozy",
+    });
+    expect(
+      (el.shadowRoot!.querySelector(".overlay") as HTMLSelectElement).value,
+    ).toBe("auto");
+  });
+  it("falls back to the overlay when the hub predates rules", async () => {
+    const { el } = await setup({ overlay: "cozy" });
+    expect(
+      (el.shadowRoot!.querySelector(".overlay") as HTMLSelectElement).value,
+    ).toBe("cozy");
+  });
+  it("shows when a manual hold expires", async () => {
+    const { el } = await setup({
+      ...withRules,
+      overlay_choice: "none",
+      overlay_hold_until: new Date("2026-12-10T23:00:00Z").toISOString(),
+    });
+    const status = el.shadowRoot!.querySelector(".status")!.textContent!;
+    expect(status).toContain("manual until");
+  });
+  it("leaves the status clean without a hold", async () => {
+    const { el } = await setup(withRules);
+    expect(el.shadowRoot!.querySelector(".status")!.textContent).not.toContain(
+      "manual until",
+    );
+  });
+  it("edits a fixed date rule and saves it", async () => {
+    const { el, callService } = await setup(withRules);
+    el.shadowRoot!.querySelector('[aria-label="Settings"]').click();
+    await el.updateComplete;
+    const from = el.shadowRoot!.querySelector(
+      '[name="rule-from"]',
+    ) as HTMLInputElement;
+    expect(from.value).toBe("12-01");
+    from.value = "11-29";
+    from.dispatchEvent(new Event("input"));
+    await el.updateComplete;
+    el.shadowRoot!.querySelector('[data-action="save"]').click();
+    await vi.waitFor(() =>
+      expect(callService).toHaveBeenCalledWith(
+        "house_state",
+        "set_config",
+        expect.objectContaining({
+          overlays: [
+            expect.objectContaining({
+              id: "cozy",
+              dates: { type: "fixed", from: "11-29", to: "12-26" },
+            }),
+          ],
+        }),
+      ),
+    );
+  });
+  it("switches rule kind and seeds a usable default", async () => {
+    const { el, callService } = await setup();
+    el.shadowRoot!.querySelector('[aria-label="Settings"]').click();
+    await el.updateComplete;
+    const kind = el.shadowRoot!.querySelector(
+      '[name="rule-kind"]',
+    ) as HTMLSelectElement;
+    expect(kind.value).toBe("none");
+    kind.value = "easter";
+    kind.dispatchEvent(new Event("change"));
+    await el.updateComplete;
+    el.shadowRoot!.querySelector('[data-action="save"]').click();
+    await vi.waitFor(() =>
+      expect(callService).toHaveBeenCalledWith(
+        "house_state",
+        "set_config",
+        expect.objectContaining({
+          overlays: [
+            expect.objectContaining({
+              dates: { type: "easter", from: -7, to: 1 },
+            }),
+          ],
+        }),
+      ),
+    );
+  });
+  it("seeds Advent as Sundays before an anchor, not a Sunday of December", async () => {
+    const { el } = await setup();
+    el.shadowRoot!.querySelector('[aria-label="Settings"]').click();
+    await el.updateComplete;
+    const kind = el.shadowRoot!.querySelector(
+      '[name="rule-kind"]',
+    ) as HTMLSelectElement;
+    kind.value = "nth_weekday";
+    kind.dispatchEvent(new Event("change"));
+    await el.updateComplete;
+    expect(
+      (el.shadowRoot!.querySelector('[name="rule-anchor"]') as HTMLInputElement)
+        .value,
+    ).toBe("12-25");
+    expect(
+      (el.shadowRoot!.querySelector('[name="rule-nth"]') as HTMLInputElement)
+        .value,
+    ).toBe("-4");
+  });
+  it("drops an unfinished calendar rule instead of failing validation", async () => {
+    const { el, callService } = await setup();
+    el.shadowRoot!.querySelector('[aria-label="Settings"]').click();
+    await el.updateComplete;
+    const kind = el.shadowRoot!.querySelector(
+      '[name="rule-kind"]',
+    ) as HTMLSelectElement;
+    kind.value = "calendar";
+    kind.dispatchEvent(new Event("change"));
+    await el.updateComplete;
+    el.shadowRoot!.querySelector('[data-action="save"]').click();
+    await vi.waitFor(() => expect(callService).toHaveBeenCalled());
+    const saved = callService.mock.calls.find(
+      (c: any[]) => c[1] === "set_config",
+    )!;
+    expect(saved[2].overlays[0]).toEqual({
+      id: "cozy",
+      name: "Cozy lights",
+      scene: "scene.cozy",
+    });
+  });
+  it("keeps gating fields only when they say something", async () => {
+    const { el, callService } = await setup(withRules);
+    el.shadowRoot!.querySelector('[aria-label="Settings"]').click();
+    await el.updateComplete;
+    const when = el.shadowRoot!.querySelector(
+      '[name="rule-when-occupied"]',
+    ) as HTMLSelectElement;
+    expect(when.value).toBe("");
+    when.value = "true";
+    when.dispatchEvent(new Event("change"));
+    await el.updateComplete;
+    el.shadowRoot!.querySelector('[data-action="save"]').click();
+    await vi.waitFor(() => expect(callService).toHaveBeenCalled());
+    const saved = callService.mock.calls.find(
+      (c: any[]) => c[1] === "set_config",
+    )!;
+    expect(saved[2].overlays[0].when_occupied).toBe(true);
+    expect(saved[2].overlays[0]).not.toHaveProperty("when_state");
+    expect(saved[2].overlays[0]).not.toHaveProperty("priority");
+  });
+});

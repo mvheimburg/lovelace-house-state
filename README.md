@@ -25,7 +25,15 @@ All card options are available in the visual editor. The integration starts with
 
 Tree changes stay in a local draft until **Save** sends `state_tree`, `roles`, `initial_state`, and `overlays` together. Removing a node removes its descendants after confirmation and clears references to them. The dialog also configures custom overlays, door/gate/person entities, return and away automation, the grace period, and the night schedule. **Apply scene now** calls `house_state.apply_scene` with `force: true` to resynchronize devices.
 
-State changes call `house_state.set` with `{state, reason: user}`. Overlay changes use `{overlay, reason: user}`. The card reads `active_path`, `state_tree`, `overlays`, and `config` from the hub sensor.
+State changes call `house_state.set` with `{state, reason: user}`. Overlay changes use `{overlay, reason: user}`. The card reads `active_path`, `state_tree`, `overlays`, `overlay_choice`, `overlay_rule`, `overlay_hold_until`, and `config` from the hub sensor.
+
+## Date-driven overlays
+
+Overlays can turn themselves on. Each overlay in the settings dialog has an **Activation** picker: manual only, a calendar entity (with an optional summary match), fixed `MM-DD` dates, an offset window around Easter, or an nth weekday counted within a month or before an anchor date — which is how Advent works, being the fourth Sunday before 25 December rather than a fixed Sunday of December. A rule can be limited to when someone is home, to particular states, and given a priority that decides overlapping windows.
+
+The overlay picker on the card then shows **Automatic** alongside the overlay the rules currently pick. Choosing an overlay by hand, or **Off**, outranks the rules until the start of the next local day, and the status line shows when that hold expires. Choosing **Automatic** hands the axis straight back.
+
+Rules require the integration at 0.2.0 or later; against an older hub the picker behaves exactly as before. Half-finished rules — a calendar row with no entity chosen — are saved as no rule rather than being rejected.
 
 The UI follows Home Assistant's English or Norwegian locale. Bubble appearance uses the dashboard's `--bubble-*` variables.
 
@@ -39,4 +47,4 @@ npm run typecheck
 npm run build
 ```
 
-Version 0.1.0.
+Version 0.2.0.

@@ -34,10 +34,28 @@ export interface StateNode {
   default_child: string | null;
   occupied: boolean | null;
 }
+export type DateRule =
+  | { type: "fixed"; from: string; to: string }
+  | { type: "easter"; from: number; to: number }
+  | {
+      type: "nth_weekday";
+      weekday: string;
+      nth: number;
+      days: number;
+      month?: number;
+      anchor?: string;
+    };
+export type RuleKind = "none" | "calendar" | DateRule["type"];
 export interface Overlay {
   id: string;
   name: string;
   scene: string;
+  calendar?: string;
+  match?: string;
+  dates?: DateRule;
+  when_occupied?: boolean | null;
+  when_state?: string[];
+  priority?: number;
 }
 export interface Roles {
   arrival: string | null;

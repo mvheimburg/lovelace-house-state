@@ -377,6 +377,45 @@ const labels = {
         missing: "Entity not found",
         newState: "New state",
         newOverlay: "New overlay",
+        automatic: "Automatic",
+        heldUntil: "manual until",
+        rule: "Activation",
+        rules: {
+            none: "Manual only",
+            calendar: "Calendar",
+            fixed: "Fixed dates",
+            easter: "Easter",
+            nth_weekday: "Weekday",
+        },
+        calendar: "Calendar",
+        match: "Summary matches",
+        from: "From (MM-DD)",
+        to: "To (MM-DD)",
+        fromDays: "From (days)",
+        toDays: "To (days)",
+        weekday: "Weekday",
+        weekdays: {
+            mon: "Monday",
+            tue: "Tuesday",
+            wed: "Wednesday",
+            thu: "Thursday",
+            fri: "Friday",
+            sat: "Saturday",
+            sun: "Sunday",
+        },
+        nth: "Which one",
+        basis: "Counted from",
+        anchorBasis: "A date",
+        monthBasis: "A month",
+        anchor: "Anchor (MM-DD)",
+        month: "Month",
+        days: "Length (days)",
+        whenOccupied: "Only when",
+        always: "Always",
+        someoneHome: "Someone home",
+        nobodyHome: "Nobody home",
+        whenState: "Only in states",
+        priority: "Priority",
         reason: {
             user: "changed manually",
             door: "door unlocked",
@@ -427,6 +466,45 @@ const labels = {
         missing: "Fant ikke entiteten",
         newState: "Ny tilstand",
         newOverlay: "Nytt overlegg",
+        automatic: "Automatisk",
+        heldUntil: "manuelt til",
+        rule: "Aktivering",
+        rules: {
+            none: "Kun manuelt",
+            calendar: "Kalender",
+            fixed: "Faste datoer",
+            easter: "Påske",
+            nth_weekday: "Ukedag",
+        },
+        calendar: "Kalender",
+        match: "Tittel matcher",
+        from: "Fra (MM-DD)",
+        to: "Til (MM-DD)",
+        fromDays: "Fra (dager)",
+        toDays: "Til (dager)",
+        weekday: "Ukedag",
+        weekdays: {
+            mon: "Mandag",
+            tue: "Tirsdag",
+            wed: "Onsdag",
+            thu: "Torsdag",
+            fri: "Fredag",
+            sat: "Lørdag",
+            sun: "Søndag",
+        },
+        nth: "Hvilken",
+        basis: "Telles fra",
+        anchorBasis: "En dato",
+        monthBasis: "En måned",
+        anchor: "Anker (MM-DD)",
+        month: "Måned",
+        days: "Lengde (dager)",
+        whenOccupied: "Bare når",
+        always: "Alltid",
+        someoneHome: "Noen hjemme",
+        nobodyHome: "Ingen hjemme",
+        whenState: "Bare i tilstander",
+        priority: "Prioritet",
         reason: {
             user: "endret manuelt",
             door: "låst opp dør",
@@ -459,8 +537,10 @@ let HouseStateCard = class HouseStateCard extends i {
     updated() {
         const select = this.renderRoot.querySelector("select.overlay");
         const entity = this.hass?.states?.[this.config?.entity];
+        // overlay_choice is what is selected on the axis; overlay is what is in force.
         if (select && entity && !this.busy)
-            select.value = entity.attributes.overlay || "none";
+            select.value =
+                entity.attributes.overlay_choice ?? entity.attributes.overlay ?? "none";
     }
     static getConfigElement() {
         return document.createElement("lovelace-house-state-editor");
@@ -531,6 +611,18 @@ let HouseStateCard = class HouseStateCard extends i {
             !window.confirm(this.t.vacationConfirm))
             return;
         void this.call("set", { state: id, reason: "user" });
+    }
+    held(value) {
+        if (!value)
+            return "";
+        const at = new Date(String(value));
+        if (Number.isNaN(at.getTime()))
+            return "";
+        const clock = at.toLocaleTimeString(undefined, {
+            hour: "2-digit",
+            minute: "2-digit",
+        });
+        return ` · ${this.t.heldUntil} ${clock}`;
     }
     duration(s) {
         const m = Math.floor((Date.now() - new Date(String(s)).getTime()) / 60000);
@@ -658,6 +750,25 @@ let HouseStateCard = class HouseStateCard extends i {
         };
         this.selected = initial_state;
     }
+    /** Drop half-finished rule fields; the integration rejects empty ones. */
+    cleanOverlays(overlays) {
+        return overlays.map((overlay) => {
+            const out = { ...overlay };
+            if (!out.calendar)
+                delete out.calendar;
+            if (!out.match || !out.calendar)
+                delete out.match;
+            if (out.calendar || !out.dates)
+                delete out.dates;
+            if (typeof out.when_occupied !== "boolean")
+                delete out.when_occupied;
+            if (!out.when_state?.length)
+                delete out.when_state;
+            if (!out.priority)
+                delete out.priority;
+            return out;
+        });
+    }
     async saveDraft() {
         if (!this.draft)
             return;
@@ -666,7 +777,7 @@ let HouseStateCard = class HouseStateCard extends i {
             state_tree: savedDraft.state_tree,
             roles: savedDraft.roles,
             initial_state: savedDraft.initial_state,
-            overlays: savedDraft.overlays,
+            overlays: this.cleanOverlays(savedDraft.overlays),
         });
         if (saved && this.draft === savedDraft)
             this.close();
@@ -706,6 +817,9 @@ let HouseStateCard = class HouseStateCard extends i {
         </div></ha-card
       >`;
         const path = a.active_path || [];
+        const overlays = a.overlays || cfg.overlays || [];
+        const choice = a.overlay_choice ?? a.overlay ?? "none";
+        const ruleName = overlays.find((o) => o.id === a.overlay_rule)?.name;
         const levels = [
             this.branches(null, nodes),
             ...path.map((id) => this.branches(id, nodes)),
@@ -732,13 +846,15 @@ let HouseStateCard = class HouseStateCard extends i {
                 ?disabled=${!available}
                 @change=${(e) => this.call("set", { overlay: e.target.value, reason: "user" })}
               >
-                <option
-                  value="none"
-                  ?selected=${(a.overlay || "none") === "none"}
-                >
+                ${overlays.some((o) => o.calendar || o.dates)
+                ? b `<option value="auto" ?selected=${choice === "auto"}>
+                        ${this.t.automatic}${ruleName ? ` · ${ruleName}` : ""}
+                      </option>`
+                : A}
+                <option value="none" ?selected=${choice === "none"}>
                   ${this.t.off}
                 </option>
-                ${(a.overlays || cfg.overlays || []).map((o) => b `<option value=${o.id} ?selected=${a.overlay === o.id}>${o.name}</option>`)}
+                ${overlays.map((o) => b `<option value=${o.id} ?selected=${choice === o.id}>${o.name}</option>`)}
               </select>`
             : A}
         <div
@@ -747,9 +863,206 @@ let HouseStateCard = class HouseStateCard extends i {
         >
           ${byId.get(path[path.length - 1] || "")?.name || entity.state} ·
           ${this.duration(a.since)} ·
-          ${this.t.reason[a.last_changed_by] || a.last_changed_by || ""}
+          ${this.t.reason[a.last_changed_by] || a.last_changed_by || ""}${this.held(a.overlay_hold_until)}
         </div></ha-card
       >${this.settings(cfg, available)}`;
+    }
+    ruleKind(o) {
+        if (o.calendar !== undefined)
+            return "calendar";
+        return o.dates?.type || "none";
+    }
+    setRuleKind(d, index, kind) {
+        const overlays = [...d.overlays];
+        const base = { ...overlays[index] };
+        delete base.calendar;
+        delete base.match;
+        delete base.dates;
+        if (kind === "calendar")
+            base.calendar = "";
+        else if (kind === "fixed")
+            base.dates = { type: "fixed", from: "12-01", to: "12-26" };
+        else if (kind === "easter")
+            base.dates = { type: "easter", from: -7, to: 1 };
+        else if (kind === "nth_weekday")
+            base.dates = {
+                type: "nth_weekday",
+                weekday: "sun",
+                nth: -4,
+                anchor: "12-25",
+                days: 28,
+            };
+        overlays[index] = base;
+        this.draft = { ...d, overlays };
+    }
+    overlayRule(d, o, index) {
+        const t = this.t;
+        const kind = this.ruleKind(o);
+        const patch = (changes) => {
+            const overlays = [...d.overlays];
+            overlays[index] = { ...overlays[index], ...changes };
+            this.draft = { ...d, overlays };
+        };
+        const dates = (changes) => patch({ dates: { ...o.dates, ...changes } });
+        const rule = o.dates;
+        const num = (e) => Number(e.target.value);
+        const text = (e) => e.target.value;
+        return b `<div class="grid rule">
+      <label class="field"
+        >${t.rule}<select
+          name="rule-kind"
+          @change=${(e) => this.setRuleKind(d, index, text(e))}
+        >
+          ${["none", "calendar", "fixed", "easter", "nth_weekday"].map((k) => b `<option value=${k} ?selected=${kind === k}>${t.rules[k]}</option>`)}
+        </select></label
+      >
+      ${kind === "calendar"
+            ? b `<label class="field"
+                >${t.calendar}<ha-entity-picker
+                  .hass=${this.hass}
+                  .value=${o.calendar || ""}
+                  .includeDomains=${["calendar"]}
+                  @value-changed=${(e) => patch({ calendar: e.detail.value || "" })}
+                ></ha-entity-picker></label
+              ><label class="field"
+                >${t.match}<input
+                  name="rule-match"
+                  placeholder="^jul"
+                  .value=${o.match || ""}
+                  @input=${(e) => patch({ match: text(e) })}
+              /></label>`
+            : A}
+      ${kind === "fixed"
+            ? b `<label class="field"
+                >${t.from}<input
+                  name="rule-from"
+                  placeholder="12-01"
+                  .value=${rule?.from ?? ""}
+                  @input=${(e) => dates({ from: text(e) })}
+              /></label>
+              <label class="field"
+                >${t.to}<input
+                  name="rule-to"
+                  placeholder="12-26"
+                  .value=${rule?.to ?? ""}
+                  @input=${(e) => dates({ to: text(e) })}
+              /></label>`
+            : A}
+      ${kind === "easter"
+            ? b `<label class="field"
+                >${t.fromDays}<input
+                  name="rule-from"
+                  type="number"
+                  .value=${String(rule?.from ?? 0)}
+                  @input=${(e) => dates({ from: num(e) })}
+              /></label>
+              <label class="field"
+                >${t.toDays}<input
+                  name="rule-to"
+                  type="number"
+                  .value=${String(rule?.to ?? 0)}
+                  @input=${(e) => dates({ to: num(e) })}
+              /></label>`
+            : A}
+      ${kind === "nth_weekday"
+            ? b `<label class="field"
+                >${t.weekday}<select
+                  name="rule-weekday"
+                  @change=${(e) => dates({ weekday: text(e) })}
+                >
+                  ${Object.entries(t.weekdays).map(([id, label]) => b `<option value=${id} ?selected=${rule?.weekday === id}>${label}</option>`)}
+                </select></label
+              ><label class="field"
+                >${t.nth}<input
+                  name="rule-nth"
+                  type="number"
+                  min="-5"
+                  max="5"
+                  .value=${String(rule?.nth ?? -1)}
+                  @input=${(e) => dates({ nth: num(e) })}
+              /></label>
+              <label class="field"
+                >${t.basis}<select
+                  name="rule-basis"
+                  @change=${(e) => dates(text(e) === "anchor" ? { anchor: "12-25", month: undefined } : { month: 12, anchor: undefined })}
+                >
+                  <option
+                    value="anchor"
+                    ?selected=${rule?.anchor !== undefined}
+                  >
+                    ${t.anchorBasis}
+                  </option>
+                  <option value="month" ?selected=${rule?.anchor === undefined}>
+                    ${t.monthBasis}
+                  </option>
+                </select></label
+              >
+              ${rule?.anchor !== undefined
+                ? b `<label class="field"
+                      >${t.anchor}<input
+                        name="rule-anchor"
+                        placeholder="12-25"
+                        .value=${rule?.anchor ?? ""}
+                        @input=${(e) => dates({ anchor: text(e) })}
+                    /></label>`
+                : b `<label class="field"
+                      >${t.month}<input
+                        name="rule-month"
+                        type="number"
+                        min="1"
+                        max="12"
+                        .value=${String(rule?.month ?? 12)}
+                        @input=${(e) => dates({ month: num(e) })}
+                    /></label>`}
+              <label class="field"
+                >${t.days}<input
+                  name="rule-days"
+                  type="number"
+                  min="1"
+                  max="366"
+                  .value=${String(rule?.days ?? 1)}
+                  @input=${(e) => dates({ days: num(e) })}
+              /></label>`
+            : A}
+      ${kind === "none"
+            ? A
+            : b `<label class="field"
+                >${t.whenOccupied}<select
+                  name="rule-when-occupied"
+                  @change=${(e) => patch({ when_occupied: text(e) === "" ? undefined : text(e) === "true" })}
+                >
+                  <option
+                    value=""
+                    ?selected=${typeof o.when_occupied !== "boolean"}
+                  >
+                    ${t.always}
+                  </option>
+                  <option value="true" ?selected=${o.when_occupied === true}>
+                    ${t.someoneHome}
+                  </option>
+                  <option value="false" ?selected=${o.when_occupied === false}>
+                    ${t.nobodyHome}
+                  </option>
+                </select></label
+              ><label class="field"
+                >${t.whenState}<select
+                  name="rule-when-state"
+                  multiple
+                  size="3"
+                  @change=${(e) => patch({ when_state: Array.from(e.target.selectedOptions).map((x) => x.value) })}
+                >
+                  ${d.state_tree.map((n) => b `<option value=${n.id} ?selected=${o.when_state?.includes(n.id)}>${n.name}</option>`)}
+                </select></label
+              ><label class="field"
+                >${t.priority}<input
+                  name="rule-priority"
+                  type="number"
+                  min="-100"
+                  max="100"
+                  .value=${String(o.priority ?? 0)}
+                  @input=${(e) => patch({ priority: num(e) })}
+              /></label>`}
+    </div>`;
     }
     ordered(nodes, parent = null, depth = 0) {
         return this.branches(parent, nodes).flatMap((n) => [
@@ -912,6 +1225,7 @@ let HouseStateCard = class HouseStateCard extends i {
                 >
                   ${t.remove}
                 </button>
+                ${this.overlayRule(d, o, i)}
               </div>`)}
         </div>
         ${available ? this.operationalSettings(cfg, sch) : b `<fieldset disabled>${this.operationalSettings(cfg, sch)}</fieldset>`}
