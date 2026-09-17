@@ -377,6 +377,14 @@ const labels = {
         missing: "Entity not found",
         newState: "New state",
         newOverlay: "New overlay",
+        reason: {
+            user: "changed manually",
+            door: "door unlocked",
+            gate: "gate opened",
+            presence: "presence",
+            schedule: "schedule",
+            service: "service",
+        },
     },
     nb: {
         settings: "Innstillinger",
@@ -419,6 +427,14 @@ const labels = {
         missing: "Fant ikke entiteten",
         newState: "Ny tilstand",
         newOverlay: "Nytt overlegg",
+        reason: {
+            user: "endret manuelt",
+            door: "låst opp dør",
+            gate: "åpnet port",
+            presence: "tilstedeværelse",
+            schedule: "tidsplan",
+            service: "tjeneste",
+        },
     },
 };
 let HouseStateCard = class HouseStateCard extends i {
@@ -439,6 +455,12 @@ let HouseStateCard = class HouseStateCard extends i {
     }
     getCardSize() {
         return 4;
+    }
+    updated() {
+        const select = this.renderRoot.querySelector("select.overlay");
+        const entity = this.hass?.states?.[this.config?.entity];
+        if (select && entity && !this.busy)
+            select.value = entity.attributes.overlay || "none";
     }
     static getConfigElement() {
         return document.createElement("lovelace-house-state-editor");
@@ -708,9 +730,13 @@ let HouseStateCard = class HouseStateCard extends i {
                 ${(a.overlays || cfg.overlays || []).map((o) => b `<option value=${o.id} ?selected=${a.overlay === o.id}>${o.name}</option>`)}
               </select>`
             : A}
-        <div class="status">
-          ${path.map((id) => byId.get(id)?.name || id).join(" · ")} ·
-          ${this.duration(a.since)} · ${a.last_changed_by || ""}
+        <div
+          class="status"
+          title=${path.map((id) => byId.get(id)?.name || id).join(" › ")}
+        >
+          ${byId.get(path[path.length - 1] || "")?.name || entity.state} ·
+          ${this.duration(a.since)} ·
+          ${this.t.reason[a.last_changed_by] || a.last_changed_by || ""}
         </div></ha-card
       >${this.settings(cfg)}`;
     }

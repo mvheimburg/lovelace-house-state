@@ -55,6 +55,14 @@ const labels = {
     missing: "Entity not found",
     newState: "New state",
     newOverlay: "New overlay",
+    reason: {
+      user: "changed manually",
+      door: "door unlocked",
+      gate: "gate opened",
+      presence: "presence",
+      schedule: "schedule",
+      service: "service",
+    },
   },
   nb: {
     settings: "Innstillinger",
@@ -97,6 +105,14 @@ const labels = {
     missing: "Fant ikke entiteten",
     newState: "Ny tilstand",
     newOverlay: "Nytt overlegg",
+    reason: {
+      user: "endret manuelt",
+      door: "låst opp dør",
+      gate: "åpnet port",
+      presence: "tilstedeværelse",
+      schedule: "tidsplan",
+      service: "tjeneste",
+    },
   },
 };
 
@@ -121,6 +137,13 @@ export class HouseStateCard extends LitElement {
   }
   getCardSize() {
     return 4;
+  }
+  protected updated() {
+    const select =
+      this.renderRoot.querySelector<HTMLSelectElement>("select.overlay");
+    const entity = this.hass?.states?.[this.config?.entity];
+    if (select && entity && !this.busy)
+      select.value = entity.attributes.overlay || "none";
   }
   static getConfigElement() {
     return document.createElement("lovelace-house-state-editor");
@@ -403,9 +426,13 @@ export class HouseStateCard extends LitElement {
               </select>`
             : nothing
         }
-        <div class="status">
-          ${path.map((id) => byId.get(id)?.name || id).join(" · ")} ·
-          ${this.duration(a.since)} · ${a.last_changed_by || ""}
+        <div
+          class="status"
+          title=${path.map((id) => byId.get(id)?.name || id).join(" › ")}
+        >
+          ${byId.get(path[path.length - 1] || "")?.name || entity.state} ·
+          ${this.duration(a.since)} ·
+          ${(this.t.reason as Record<string, string>)[a.last_changed_by] || a.last_changed_by || ""}
         </div></ha-card
       >${this.settings(cfg)}`;
   }

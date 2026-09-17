@@ -284,4 +284,15 @@ describe("configurable tree card", () => {
     await vi.waitFor(() => expect(fn).toHaveBeenCalled());
     expect(fn.mock.calls[0][0].detail.message).toContain("offline");
   });
+  it("restores the authoritative overlay after a rejected change", async () => {
+    const { el, callService } = await setup({ overlay: "none" });
+    callService.mockRejectedValueOnce(new Error("offline"));
+    const select = el.shadowRoot!.querySelector(
+      ".overlay",
+    ) as HTMLSelectElement;
+    select.value = "cozy";
+    select.dispatchEvent(new Event("change"));
+    await vi.waitFor(() => expect(callService).toHaveBeenCalled());
+    await vi.waitFor(() => expect(select.value).toBe("none"));
+  });
 });
