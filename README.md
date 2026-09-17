@@ -2,6 +2,10 @@
 
 A compact Home Assistant card for the [`house_state`](https://github.com/mvheimburg/house-state) integration. It renders any configured state tree, manages independent overlays, and exposes the integration's runtime settings.
 
+![House State card showing a custom four-level state tree and a Winter lights overlay](images/state-tree.png)
+
+Example with a custom state tree in Bubble appearance.
+
 ## Install
 
 Add this repository to HACS as a **Dashboard** repository, install it, and refresh the browser. For manual installation, copy `dist/lovelace-house-state-card.js` to `www/` and register it as a JavaScript module resource.
