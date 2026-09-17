@@ -3,6 +3,7 @@ import { customElement, property, state } from "lit/decorators.js";
 import { styles } from "./styles";
 import type {
   CardConfig,
+  HassEntity,
   HomeAssistant,
   Overlay,
   Roles,
@@ -123,6 +124,7 @@ export class HouseStateCard extends LitElement {
   @state() private busy = false;
   @state() private draft?: RuntimeConfig;
   @state() private selected?: string;
+  private lastValid?: HassEntity;
   static styles = styles;
 
   setConfig(config: CardConfig) {
@@ -369,7 +371,18 @@ export class HouseStateCard extends LitElement {
   }
 
   render() {
-    const entity = this.hass?.states?.[this.config?.entity];
+    const liveEntity = this.hass?.states?.[this.config?.entity];
+    const liveNodes =
+      liveEntity?.attributes?.state_tree ||
+      liveEntity?.attributes?.config?.state_tree;
+    const available = Boolean(
+      liveEntity &&
+      liveEntity.state !== "unavailable" &&
+      Array.isArray(liveNodes) &&
+      liveNodes.length,
+    );
+    if (available) this.lastValid = liveEntity;
+    const entity = available ? liveEntity : this.lastValid;
     if (!entity)
       return html`<ha-card
         ><div class="error">
@@ -404,16 +417,18 @@ export class HouseStateCard extends LitElement {
           <button
             class="icon"
             aria-label="Settings"
+            ?disabled=${!available}
             @click=${() => this.open(cfg)}
           >
             <ha-icon icon="mdi:cog-outline"></ha-icon>
           </button>
         </div>
-        ${levels.map((group) => html`<div class="segment">${group.map((n) => html`<button data-state=${n.id} class=${path.includes(n.id) ? "active" : ""} ?disabled=${this.busy} @click=${() => this.selectState(n.id, nodes, cfg.roles)}>${n.name}</button>`)}</div>`)}
+        ${levels.map((group) => html`<div class="segment">${group.map((n) => html`<button data-state=${n.id} class=${path.includes(n.id) ? "active" : ""} ?disabled=${this.busy || !available} @click=${() => this.selectState(n.id, nodes, cfg.roles)}>${n.name}</button>`)}</div>`)}
         ${
           this.config.show_overlay
             ? html`<select
                 class="overlay"
+                ?disabled=${!available}
                 @change=${(e: Event) => this.call("set", { overlay: (e.target as HTMLSelectElement).value, reason: "user" })}
               >
                 <option
@@ -434,7 +449,7 @@ export class HouseStateCard extends LitElement {
           ${this.duration(a.since)} ·
           ${(this.t.reason as Record<string, string>)[a.last_changed_by] || a.last_changed_by || ""}
         </div></ha-card
-      >${this.settings(cfg)}`;
+      >${this.settings(cfg, available)}`;
   }
 
   private ordered(
@@ -447,7 +462,7 @@ export class HouseStateCard extends LitElement {
       ...this.ordered(nodes, n.id, depth + 1),
     ]);
   }
-  private settings(cfg: RuntimeConfig) {
+  private settings(cfg: RuntimeConfig, available = true) {
     const d = this.draft || cfg,
       t = this.t,
       node = d.state_tree.find((n) => n.id === this.selected),
@@ -618,11 +633,12 @@ export class HouseStateCard extends LitElement {
               </div>`,
           )}
         </div>
-        ${this.operationalSettings(cfg, sch)}
+        ${available ? this.operationalSettings(cfg, sch) : html`<fieldset disabled>${this.operationalSettings(cfg, sch)}</fieldset>`}
       </div>
       <div class="dialog-actions">
         <button
           data-action="apply-scene"
+          ?disabled=${!available}
           @click=${() => this.call("apply_scene", { force: true })}
         >
           ${t.apply}</button
@@ -630,7 +646,7 @@ export class HouseStateCard extends LitElement {
         ><button
           data-action="save"
           class="primary"
-          ?disabled=${this.busy}
+          ?disabled=${this.busy || !available}
           @click=${this.saveDraft}
         >
           ${t.save}
@@ -673,7 +689,7 @@ export class HouseStateCard extends LitElement {
         ><label class="field"
           >${this.t.grace}<input
             type="number"
-            .value=${String(c.auto_away_grace || 300)}
+            .value=${String(c.auto_away_grace ?? 300)}
             @change=${(e: Event) => this.saveOption("auto_away_grace", Number((e.target as HTMLInputElement).value))} /></label
         ><label class="field"
           >${this.t.schedule}<select

@@ -675,7 +675,16 @@ let HouseStateCard = class HouseStateCard extends i {
         void this.call("set_config", { [key]: value });
     }
     render() {
-        const entity = this.hass?.states?.[this.config?.entity];
+        const liveEntity = this.hass?.states?.[this.config?.entity];
+        const liveNodes = liveEntity?.attributes?.state_tree ||
+            liveEntity?.attributes?.config?.state_tree;
+        const available = Boolean(liveEntity &&
+            liveEntity.state !== "unavailable" &&
+            Array.isArray(liveNodes) &&
+            liveNodes.length);
+        if (available)
+            this.lastValid = liveEntity;
+        const entity = available ? liveEntity : this.lastValid;
         if (!entity)
             return b `<ha-card
         ><div class="error">
@@ -710,15 +719,17 @@ let HouseStateCard = class HouseStateCard extends i {
           <button
             class="icon"
             aria-label="Settings"
+            ?disabled=${!available}
             @click=${() => this.open(cfg)}
           >
             <ha-icon icon="mdi:cog-outline"></ha-icon>
           </button>
         </div>
-        ${levels.map((group) => b `<div class="segment">${group.map((n) => b `<button data-state=${n.id} class=${path.includes(n.id) ? "active" : ""} ?disabled=${this.busy} @click=${() => this.selectState(n.id, nodes, cfg.roles)}>${n.name}</button>`)}</div>`)}
+        ${levels.map((group) => b `<div class="segment">${group.map((n) => b `<button data-state=${n.id} class=${path.includes(n.id) ? "active" : ""} ?disabled=${this.busy || !available} @click=${() => this.selectState(n.id, nodes, cfg.roles)}>${n.name}</button>`)}</div>`)}
         ${this.config.show_overlay
             ? b `<select
                 class="overlay"
+                ?disabled=${!available}
                 @change=${(e) => this.call("set", { overlay: e.target.value, reason: "user" })}
               >
                 <option
@@ -738,7 +749,7 @@ let HouseStateCard = class HouseStateCard extends i {
           ${this.duration(a.since)} ·
           ${this.t.reason[a.last_changed_by] || a.last_changed_by || ""}
         </div></ha-card
-      >${this.settings(cfg)}`;
+      >${this.settings(cfg, available)}`;
     }
     ordered(nodes, parent = null, depth = 0) {
         return this.branches(parent, nodes).flatMap((n) => [
@@ -746,7 +757,7 @@ let HouseStateCard = class HouseStateCard extends i {
             ...this.ordered(nodes, n.id, depth + 1),
         ]);
     }
-    settings(cfg) {
+    settings(cfg, available = true) {
         const d = this.draft || cfg, t = this.t, node = d.state_tree.find((n) => n.id === this.selected), blocked = node
             ? this.descendants(node.id, d.state_tree)
             : new Set();
@@ -903,11 +914,12 @@ let HouseStateCard = class HouseStateCard extends i {
                 </button>
               </div>`)}
         </div>
-        ${this.operationalSettings(cfg, sch)}
+        ${available ? this.operationalSettings(cfg, sch) : b `<fieldset disabled>${this.operationalSettings(cfg, sch)}</fieldset>`}
       </div>
       <div class="dialog-actions">
         <button
           data-action="apply-scene"
+          ?disabled=${!available}
           @click=${() => this.call("apply_scene", { force: true })}
         >
           ${t.apply}</button
@@ -915,7 +927,7 @@ let HouseStateCard = class HouseStateCard extends i {
         ><button
           data-action="save"
           class="primary"
-          ?disabled=${this.busy}
+          ?disabled=${this.busy || !available}
           @click=${this.saveDraft}
         >
           ${t.save}
@@ -954,7 +966,7 @@ let HouseStateCard = class HouseStateCard extends i {
         ><label class="field"
           >${this.t.grace}<input
             type="number"
-            .value=${String(c.auto_away_grace || 300)}
+            .value=${String(c.auto_away_grace ?? 300)}
             @change=${(e) => this.saveOption("auto_away_grace", Number(e.target.value))} /></label
         ><label class="field"
           >${this.t.schedule}<select

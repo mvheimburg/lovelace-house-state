@@ -295,4 +295,63 @@ describe("configurable tree card", () => {
     await vi.waitFor(() => expect(callService).toHaveBeenCalled());
     await vi.waitFor(() => expect(select.value).toBe("none"));
   });
+  it("preserves an open draft through a temporary unavailable hub reload", async () => {
+    const { el } = await setup();
+    el.shadowRoot!.querySelector('[aria-label="Settings"]').click();
+    await el.updateComplete;
+    const name = el.shadowRoot!.querySelector(
+      '[name="node-name"]',
+    ) as HTMLInputElement;
+    name.value = "Draft name";
+    name.dispatchEvent(new Event("input"));
+    await el.updateComplete;
+    el.hass = {
+      ...el.hass,
+      states: {
+        "sensor.house_state": {
+          entity_id: "sensor.house_state",
+          state: "unavailable",
+          attributes: { friendly_name: "House" },
+        },
+      },
+    };
+    await el.updateComplete;
+    expect(el.shadowRoot!.querySelector("dialog").open).toBe(true);
+    expect(
+      (el.shadowRoot!.querySelector('[name="node-name"]') as HTMLInputElement)
+        .value,
+    ).toBe("Draft name");
+    el.hass = {
+      ...el.hass,
+      states: {
+        "sensor.house_state": {
+          entity_id: "sensor.house_state",
+          state: "reading",
+          attributes: {
+            state: "reading",
+            active_path: ["present", "awake", "quiet", "reading"],
+            state_tree: tree,
+            overlays: config.overlays,
+            overlay: "none",
+            config,
+          },
+        },
+      },
+    };
+    await el.updateComplete;
+    expect(el.shadowRoot!.querySelector("dialog").open).toBe(true);
+    expect(
+      (el.shadowRoot!.querySelector('[name="node-name"]') as HTMLInputElement)
+        .value,
+    ).toBe("Draft name");
+  });
+  it("shows a configured zero-second away grace", async () => {
+    const { el } = await setup({ config: { ...config, auto_away_grace: 0 } });
+    el.shadowRoot!.querySelector('[aria-label="Settings"]').click();
+    await el.updateComplete;
+    const inputs = [
+      ...el.shadowRoot!.querySelectorAll('input[type="number"]'),
+    ] as HTMLInputElement[];
+    expect(inputs.some((input) => input.value === "0")).toBe(true);
+  });
 });
