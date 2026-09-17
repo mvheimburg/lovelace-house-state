@@ -17,7 +17,6 @@ export interface CardConfig {
   entity: string;
   name?: string;
   appearance?: "default" | "bubble";
-  show_activity?: boolean;
   show_overlay?: boolean;
   confirm_vacation?: boolean;
 }
@@ -27,14 +26,36 @@ export type Schedule = {
   event?: "sunset" | "sunrise";
   offset?: number;
 };
+export interface StateNode {
+  id: string;
+  name: string;
+  parent: string | null;
+  scene: string;
+  default_child: string | null;
+  occupied: boolean | null;
+}
+export interface Overlay {
+  id: string;
+  name: string;
+  scene: string;
+}
+export interface Roles {
+  arrival: string | null;
+  departure: string | null;
+  vacation: string | null;
+  night: string | null;
+}
 export interface RuntimeConfig {
+  state_tree: StateNode[];
+  initial_state: string;
+  overlays: Overlay[];
+  roles: Roles;
   door_entities: string[];
   gate_entities: string[];
   person_entities: string[];
-  scene_map: Record<string, string>;
   auto_return: boolean;
   auto_away: boolean;
   auto_away_grace: number;
   night_schedule: Schedule;
-  legacy_mirror?: Record<string, string>;
+  legacy_mirror?: { state?: string; overlay?: string };
 }

@@ -75,9 +75,13 @@ const t=t=>(e,o)=>{ void 0!==o?o.addInitializer(()=>{customElements.define(t,e);
 const styles = i$3 `
   :host {
     display: block;
+    width: 100%;
+    box-sizing: border-box;
     color: var(--primary-text-color);
   }
   ha-card {
+    box-sizing: border-box;
+    width: 100%;
     padding: 18px;
     border-radius: var(--ha-card-border-radius, 12px);
     background: var(--ha-card-background, var(--card-background-color));
@@ -111,9 +115,8 @@ const styles = i$3 `
     padding: 8px;
   }
   .segment {
-    display: grid;
-    grid-auto-flow: column;
-    grid-auto-columns: 1fr;
+    display: flex;
+    flex-wrap: wrap;
     gap: 4px;
     background: var(--secondary-background-color);
     padding: 4px;
@@ -128,6 +131,11 @@ const styles = i$3 `
     background: transparent;
     color: var(--primary-text-color);
     cursor: pointer;
+  }
+  .segment button {
+    flex: 1 1 96px;
+    min-width: 0;
+    overflow-wrap: anywhere;
   }
   .segment button.active,
   .chips button.active {
@@ -196,6 +204,28 @@ const styles = i$3 `
   .section {
     margin-bottom: 20px;
   }
+  .tree-list {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    margin-top: 8px;
+  }
+  .tree-list button {
+    display: flex;
+    justify-content: space-between;
+    border: 0;
+    padding-block: 8px;
+    background: transparent;
+    color: inherit;
+    text-align: left;
+    border-radius: 8px;
+  }
+  .tree-list button.active {
+    background: var(--secondary-background-color);
+  }
+  .tree-list small {
+    color: var(--secondary-text-color);
+  }
   .grid {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -256,7 +286,6 @@ const schema = [
         selector: { entity: { integration: "house_state", domain: "sensor" } },
     },
     { name: "name", selector: { text: {} } },
-    { name: "show_activity", selector: { boolean: {} } },
     { name: "show_overlay", selector: { boolean: {} } },
     { name: "confirm_vacation", selector: { boolean: {} } },
 ];
@@ -264,7 +293,6 @@ let Editor = class Editor extends i {
     setConfig(c) {
         this.config = {
             appearance: "default",
-            show_activity: true,
             show_overlay: true,
             confirm_vacation: true,
             ...c,
@@ -285,7 +313,7 @@ let Editor = class Editor extends i {
       .hass=${this.hass}
       .data=${this.config}
       .schema=${schema}
-      .computeLabel=${(x) => ({ appearance: "Appearance", entity: "House State entity", name: "Name", show_activity: "Show activity", show_overlay: "Show overlay", confirm_vacation: "Confirm vacation" })[x.name] || x.name}
+      .computeLabel=${(x) => ({ appearance: "Appearance", entity: "House State entity", name: "Name", show_overlay: "Show overlay", confirm_vacation: "Confirm vacation" })[x.name] || x.name}
       @value-changed=${this.changed}
     ></ha-form>`;
     }
@@ -306,116 +334,106 @@ Editor = __decorate([
     t("lovelace-house-state-editor")
 ], Editor);
 
-const SCENES = [
-    "home",
-    "away",
-    "vacation",
-    "day",
-    "night",
-    "tv",
-    "eating",
-    "christmas",
-    "halloween",
-    "party",
-];
-const en = {
-    home: "Home",
-    away: "Away",
-    vacation: "Vacation",
-    day: "Day",
-    night: "Night",
-    none: "Off",
-    tv: "TV",
-    eating: "Eating",
-    christmas: "Christmas",
-    halloween: "Halloween",
-    party: "Party",
-    overlay: "Overlay",
-    settings: "Settings",
-    apply: "Apply scene now",
-    close: "Close",
-    scenes: "Scenes",
-    entities: "Entities",
-    automation: "Automation",
-    door: "Door entities",
-    gate: "Gate entities",
-    person: "Person entities",
-    autoReturn: "Return automatically",
-    autoAway: "Leave automatically",
-    grace: "Away grace (seconds)",
-    schedule: "Night schedule",
-    fixed: "Fixed",
-    sun: "Sun",
-    event: "Event",
-    offset: "Offset (seconds)",
-    sunset: "Sunset",
-    sunrise: "Sunrise",
-    legacy: "Legacy mirror",
-    reason: {
-        user: "changed manually",
-        door: "door unlocked",
-        gate: "gate opened",
-        presence: "presence",
-        schedule: "schedule",
-        service: "service",
+const copy = (value) => JSON.parse(JSON.stringify(value));
+const labels = {
+    en: {
+        settings: "Settings",
+        close: "Close",
+        off: "Off",
+        apply: "Apply scene now",
+        save: "Save",
+        cancel: "Cancel",
+        tree: "State tree",
+        addRoot: "Add root",
+        addChild: "Add child",
+        remove: "Remove subtree",
+        name: "Name",
+        id: "ID",
+        parent: "Parent",
+        scene: "Scene",
+        defaultChild: "Default child",
+        occupied: "Is someone home?",
+        inherit: "Inherit",
+        yes: "Yes",
+        no: "No",
+        initial: "Initial state",
+        roles: "Automation roles",
+        overlays: "Overlays",
+        addOverlay: "Add overlay",
+        entities: "Entities",
+        automation: "Automation",
+        vacationConfirm: "Switch to vacation?",
+        arrival: "Arrival",
+        departure: "Departure",
+        vacation: "Vacation",
+        night: "Night",
+        door: "Doors",
+        gate: "Gates",
+        person: "People",
+        autoReturn: "Automatic return",
+        autoAway: "Automatic away",
+        grace: "Away grace (seconds)",
+        schedule: "Night schedule",
+        missing: "Entity not found",
+        newState: "New state",
+        newOverlay: "New overlay",
+    },
+    nb: {
+        settings: "Innstillinger",
+        close: "Lukk",
+        off: "Av",
+        apply: "Bruk scene nå",
+        save: "Lagre",
+        cancel: "Avbryt",
+        tree: "Tilstandstre",
+        addRoot: "Legg til rot",
+        addChild: "Legg til barn",
+        remove: "Fjern gren",
+        name: "Navn",
+        id: "ID",
+        parent: "Forelder",
+        scene: "Scene",
+        defaultChild: "Standardbarn",
+        occupied: "Er noen hjemme?",
+        inherit: "Arv",
+        yes: "Ja",
+        no: "Nei",
+        initial: "Starttilstand",
+        roles: "Automatikkroller",
+        overlays: "Overlegg",
+        addOverlay: "Legg til overlegg",
+        entities: "Entiteter",
+        automation: "Automatikk",
+        vacationConfirm: "Bytt til ferie?",
+        arrival: "Hjemkomst",
+        departure: "Avreise",
+        vacation: "Ferie",
+        night: "Natt",
+        door: "Dører",
+        gate: "Porter",
+        person: "Personer",
+        autoReturn: "Automatisk hjemkomst",
+        autoAway: "Automatisk borte",
+        grace: "Ventetid borte (sekunder)",
+        schedule: "Nattplan",
+        missing: "Fant ikke entiteten",
+        newState: "Ny tilstand",
+        newOverlay: "Nytt overlegg",
     },
 };
-const nb = {
-    home: "Hjemme",
-    away: "Borte",
-    vacation: "Ferie",
-    day: "Dag",
-    night: "Natt",
-    none: "Av",
-    tv: "TV",
-    eating: "Spise",
-    christmas: "Jul",
-    halloween: "Halloween",
-    party: "Fest",
-    overlay: "Overlegg",
-    settings: "Innstillinger",
-    apply: "Bruk scene nå",
-    close: "Lukk",
-    scenes: "Scener",
-    entities: "Entiteter",
-    automation: "Automatikk",
-    door: "Dørlåser",
-    gate: "Garasjeporter",
-    person: "Personer",
-    autoReturn: "Automatisk hjemkomst",
-    autoAway: "Automatisk borte",
-    grace: "Ventetid borte (sekunder)",
-    schedule: "Nattplan",
-    fixed: "Fast tid",
-    sun: "Sol",
-    event: "Hendelse",
-    offset: "Forskyvning (sekunder)",
-    sunset: "Solnedgang",
-    sunrise: "Soloppgang",
-    legacy: "Eldre speiling",
-    reason: {
-        user: "endret manuelt",
-        door: "låst opp dør",
-        gate: "åpnet port",
-        presence: "tilstedeværelse",
-        schedule: "tidsplan",
-        service: "tjeneste",
-    },
-};
-let Card = class Card extends i {
+let HouseStateCard = class HouseStateCard extends i {
     constructor() {
         super(...arguments);
         this.busy = false;
     }
-    setConfig(c) {
-        if (!c.entity)
-            throw Error("You must define an entity");
+    setConfig(config) {
+        if (!config.entity)
+            throw new Error("You must define an entity");
         this.config = {
-            show_activity: true,
+            appearance: "default",
             show_overlay: true,
             confirm_vacation: true,
-            appearance: "default",
-            ...c,
+            ...config,
         };
         this.setAttribute("data-appearance", this.config.appearance);
     }
@@ -425,17 +443,17 @@ let Card = class Card extends i {
     static getConfigElement() {
         return document.createElement("lovelace-house-state-editor");
     }
-    static getStubConfig(h) {
+    static getStubConfig(hass) {
+        const entity = Object.values(hass?.states || {}).find((x) => x.entity_id.startsWith("sensor.") && "active_path" in x.attributes);
         return {
             type: "custom:lovelace-house-state-card",
-            entity: Object.values(h?.states || {}).find((x) => x.entity_id.startsWith("sensor.") && "presence" in x.attributes)?.entity_id || "sensor.house_state",
+            entity: entity?.entity_id || "sensor.house_state",
         };
     }
     get t() {
-        return this.hass?.locale?.language?.toLowerCase().startsWith("nb") ||
-            this.hass?.locale?.language?.toLowerCase().startsWith("no")
-            ? nb
-            : en;
+        return this.hass?.locale?.language?.toLowerCase().match(/^(nb|no)/)
+            ? labels.nb
+            : labels.en;
     }
     toast(message) {
         this.dispatchEvent(new CustomEvent("hass-notification", {
@@ -451,201 +469,573 @@ let Card = class Card extends i {
                 entity_id: this.config.entity,
                 ...data,
             });
+            return true;
         }
-        catch (e) {
-            this.toast(`House State: ${e?.message || e}`);
+        catch (error) {
+            this.toast(`House State: ${error?.message || error}`);
+            return false;
         }
         finally {
             this.busy = false;
         }
     }
-    setAxis(key, value) {
-        if (key === "presence" &&
-            value === "vacation" &&
-            this.config.confirm_vacation &&
-            !window.confirm(this.t.vacation + "?"))
+    descendants(id, nodes) {
+        const found = new Set([id]);
+        let changed = true;
+        while (changed) {
+            changed = false;
+            for (const n of nodes)
+                if (n.parent && found.has(n.parent) && !found.has(n.id)) {
+                    found.add(n.id);
+                    changed = true;
+                }
+        }
+        return found;
+    }
+    selectState(id, nodes, roles) {
+        const vacation = roles.vacation;
+        let effective = id;
+        const seen = new Set();
+        while (!seen.has(effective)) {
+            seen.add(effective);
+            const next = nodes.find((n) => n.id === effective)?.default_child;
+            if (!next)
+                break;
+            effective = next;
+        }
+        if (this.config.confirm_vacation &&
+            vacation &&
+            this.descendants(vacation, nodes).has(effective) &&
+            !window.confirm(this.t.vacationConfirm))
             return;
-        void this.call("set", { [key]: value, reason: "user" });
+        void this.call("set", { state: id, reason: "user" });
     }
     duration(s) {
-        const ms = Date.now() - new Date(s).getTime();
-        if (!Number.isFinite(ms) || ms < 0)
+        const m = Math.floor((Date.now() - new Date(String(s)).getTime()) / 60000);
+        if (!Number.isFinite(m) || m < 0)
             return "";
-        const m = Math.floor(ms / 60000), h = Math.floor(m / 60), d = Math.floor(h / 24);
-        return d ? `${d}d ${h % 24}h` : h ? `${h}h ${m % 60}m` : `${m}m`;
+        return m >= 1440
+            ? `${Math.floor(m / 1440)}d ${Math.floor((m % 1440) / 60)}h`
+            : m >= 60
+                ? `${Math.floor(m / 60)}h ${m % 60}m`
+                : `${m}m`;
     }
-    save(key, value) {
-        void this.call("set_config", { [key]: value });
+    branches(parent, nodes) {
+        return nodes.filter((n) => n.parent === parent);
     }
-    open() {
+    open(cfg) {
+        this.draft = copy(cfg);
+        this.selected = cfg.initial_state;
         this.renderRoot.querySelector("dialog")?.showModal();
     }
     close() {
+        this.draft = undefined;
         this.renderRoot.querySelector("dialog")?.close();
     }
+    patchNode(values) {
+        if (!this.draft || !this.selected)
+            return;
+        const state_tree = this.draft.state_tree.map((n) => n.id === this.selected ? { ...n, ...values } : n);
+        this.draft = {
+            ...this.draft,
+            state_tree,
+            roles: this.validRoles(this.draft.roles, state_tree),
+        };
+    }
+    reparent(parent) {
+        if (!this.draft || !this.selected)
+            return;
+        const selected = this.selected;
+        const state_tree = this.draft.state_tree.map((n) => n.id === selected
+            ? { ...n, parent }
+            : n.default_child === selected
+                ? { ...n, default_child: null }
+                : n);
+        this.draft = {
+            ...this.draft,
+            state_tree,
+            roles: this.validRoles(this.draft.roles, state_tree),
+        };
+    }
+    isOccupied(id, nodes) {
+        let resolved = nodes.find((n) => n.id === id);
+        const seen = new Set();
+        while (resolved?.default_child && !seen.has(resolved.id)) {
+            seen.add(resolved.id);
+            resolved = nodes.find((n) => n.id === resolved.default_child);
+        }
+        let node = resolved;
+        while (node) {
+            if (node.occupied !== null)
+                return node.occupied;
+            node = node.parent ? nodes.find((n) => n.id === node.parent) : undefined;
+        }
+        return false;
+    }
+    validRoles(roles, nodes) {
+        return Object.fromEntries(Object.entries(roles).map(([role, id]) => {
+            if (!id)
+                return [role, null];
+            const occupied = role === "arrival" || role === "night";
+            return [role, this.isOccupied(id, nodes) === occupied ? id : null];
+        }));
+    }
+    newId(base, nodes) {
+        const slug = base
+            .toLowerCase()
+            .replace(/[^a-z0-9]+/g, "_")
+            .replace(/^([^a-z])/, "s_$1")
+            .slice(0, 55) || "state";
+        let id = slug, i = 2;
+        while (nodes.some((n) => n.id === id))
+            id = `${slug}_${i++}`;
+        return id;
+    }
+    addNode(parent) {
+        if (!this.draft)
+            return;
+        const id = this.newId(parent ? "new_state" : "new_root", this.draft.state_tree);
+        this.draft = {
+            ...this.draft,
+            state_tree: [
+                ...this.draft.state_tree,
+                {
+                    id,
+                    name: this.t.newState,
+                    parent,
+                    scene: "",
+                    default_child: null,
+                    occupied: null,
+                },
+            ],
+        };
+        this.selected = id;
+    }
+    removeNode() {
+        if (!this.draft || !this.selected)
+            return;
+        const removed = this.descendants(this.selected, this.draft.state_tree);
+        if (removed.size === this.draft.state_tree.length ||
+            !window.confirm(this.t.remove + "?"))
+            return;
+        const state_tree = this.draft.state_tree
+            .filter((n) => !removed.has(n.id))
+            .map((n) => removed.has(n.default_child || "") ? { ...n, default_child: null } : n);
+        const initial_state = removed.has(this.draft.initial_state)
+            ? state_tree[0].id
+            : this.draft.initial_state;
+        const roles = Object.fromEntries(Object.entries(this.draft.roles).map(([k, v]) => [
+            k,
+            v && removed.has(v) ? null : v,
+        ]));
+        this.draft = {
+            ...this.draft,
+            state_tree,
+            initial_state,
+            roles: this.validRoles(roles, state_tree),
+        };
+        this.selected = initial_state;
+    }
+    async saveDraft() {
+        if (!this.draft)
+            return;
+        const savedDraft = this.draft;
+        const saved = await this.call("set_config", {
+            state_tree: savedDraft.state_tree,
+            roles: savedDraft.roles,
+            initial_state: savedDraft.initial_state,
+            overlays: savedDraft.overlays,
+        });
+        if (saved && this.draft === savedDraft)
+            this.close();
+    }
+    saveOption(key, value) {
+        void this.call("set_config", { [key]: value });
+    }
     render() {
-        const s = this.hass?.states?.[this.config?.entity];
-        if (!s)
+        const entity = this.hass?.states?.[this.config?.entity];
+        if (!entity)
             return b `<ha-card
         ><div class="error">
-          <ha-icon icon="mdi:alert-circle"></ha-icon>Entity
-          ${this.config?.entity || ""} not found
+          ${this.t.missing}: ${this.config?.entity || ""}
         </div></ha-card
       >`;
-        const a = s.attributes, t = this.t, p = a.presence || s.state, m = a.mode || "day", act = a.activity || "none", ov = a.overlay || "none", cfg = a.config || {};
-        return b `<ha-card
+        const a = entity.attributes;
+        const cfg = a.config || {
+            state_tree: a.state_tree,
+            overlays: a.overlays,
+            roles: {},
+            initial_state: a.state,
+        };
+        const nodes = a.state_tree || cfg.state_tree || [];
+        if (!nodes.length)
+            return b `<ha-card
+        ><div class="error">
+          ${this.t.missing}: ${this.config.entity} (${entity.state})
+        </div></ha-card
+      >`;
+        const path = a.active_path || [];
+        const levels = [
+            this.branches(null, nodes),
+            ...path.map((id) => this.branches(id, nodes)),
+        ].filter((x) => x.length);
+        const byId = new Map(nodes.map((n) => [n.id, n]));
+        return b ` <ha-card
         ><div class="header">
-          <div>
-            <div class="title">
-              ${this.config.name || a.friendly_name || "House State"}
-            </div>
+          <div class="title">
+            ${this.config.name || a.friendly_name || "House State"}
           </div>
-          <button class="icon" aria-label="Settings" @click=${this.open}>
+          <button
+            class="icon"
+            aria-label="Settings"
+            @click=${() => this.open(cfg)}
+          >
             <ha-icon icon="mdi:cog-outline"></ha-icon>
           </button>
         </div>
-        <div class="segment presence">
-          ${["home", "away", "vacation"].map((x) => b `<button data-value=${x} class=${p === x ? "active" : ""} ?disabled=${this.busy} @click=${() => this.setAxis("presence", x)}>${t[x]}</button>`)}
-        </div>
-        <div class="segment mode">
-          ${["day", "night"].map((x) => b `<button data-value=${x} class=${m === x ? "active" : ""} ?disabled=${this.busy || !a.mode_is_available} @click=${() => this.setAxis("mode", x)}>${t[x]}</button>`)}
-        </div>
-        ${this.config.show_activity && a.activity_is_available ? b `<div class="chips activities">${["none", "tv", "eating"].map((x) => b `<button data-value=${x} class=${act === x ? "active" : ""} ?disabled=${this.busy} @click=${() => this.setAxis("activity", x)}>${t[x]}</button>`)}</div>` : A}
+        ${levels.map((group) => b `<div class="segment">${group.map((n) => b `<button data-state=${n.id} class=${path.includes(n.id) ? "active" : ""} ?disabled=${this.busy} @click=${() => this.selectState(n.id, nodes, cfg.roles)}>${n.name}</button>`)}</div>`)}
         ${this.config.show_overlay
             ? b `<select
                 class="overlay"
-                aria-label=${t.overlay}
-                .value=${ov}
-                @change=${(e) => this.setAxis("overlay", e.target.value)}
+                @change=${(e) => this.call("set", { overlay: e.target.value, reason: "user" })}
               >
-                ${(a.available_overlays || ["none", "christmas", "halloween", "party"]).map((x) => b `<option value=${x}>${t[x] || x}</option>`)}
+                <option
+                  value="none"
+                  ?selected=${(a.overlay || "none") === "none"}
+                >
+                  ${this.t.off}
+                </option>
+                ${(a.overlays || cfg.overlays || []).map((o) => b `<option value=${o.id} ?selected=${a.overlay === o.id}>${o.name}</option>`)}
               </select>`
             : A}
         <div class="status">
-          ${t[p] || p}${p === "home" ? ` · ${t[m] || m}` : ""} ·
-          ${this.duration(a.since)} ·
-          ${t.reason[a.last_changed_by] || a.last_changed_by || ""}
+          ${path.map((id) => byId.get(id)?.name || id).join(" · ")} ·
+          ${this.duration(a.since)} · ${a.last_changed_by || ""}
         </div></ha-card
       >${this.settings(cfg)}`;
     }
-    settings(c) {
-        const t = this.t, sch = c.night_schedule || { type: "off" };
-        return b `<dialog @cancel=${() => this.close()}>
+    ordered(nodes, parent = null, depth = 0) {
+        return this.branches(parent, nodes).flatMap((n) => [
+            [n, depth],
+            ...this.ordered(nodes, n.id, depth + 1),
+        ]);
+    }
+    settings(cfg) {
+        const d = this.draft || cfg, t = this.t, node = d.state_tree.find((n) => n.id === this.selected), blocked = node
+            ? this.descendants(node.id, d.state_tree)
+            : new Set();
+        const sch = cfg.night_schedule || { type: "off" };
+        return b `<dialog @cancel=${this.close}>
       <div class="dialog-head">
         <h2>${t.settings}</h2>
         <button class="icon" aria-label=${t.close} @click=${this.close}>
-          <ha-icon icon="mdi:close"></ha-icon>
+          ×
         </button>
       </div>
       <div class="settings">
         <div class="section">
-          <h3>${t.scenes}</h3>
-          <div class="grid">
-            ${SCENES.map((k) => b `<label class="field">${t[k] || k}<ha-entity-picker .hass=${this.hass} .value=${c.scene_map?.[k] || ""} .includeDomains=${["scene"]} allow-custom-entity @value-changed=${(e) => this.save("scene_map", { ...c.scene_map, [k]: e.detail.value || "" })}></ha-entity-picker></label>`)}
+          <div class="row">
+            <h3>${t.tree}</h3>
+            <button data-action="add-root" @click=${() => this.addNode(null)}>
+              ${t.addRoot}
+            </button>
+          </div>
+          <div class="tree-list">
+            ${this.ordered(d.state_tree).map(([n, depth]) => b `<button data-node=${n.id} class=${n.id === this.selected ? "active" : ""} style=${`padding-left:${8 + depth * 18}px`} @click=${() => (this.selected = n.id)}>${n.name}<small>${n.id}</small></button>`)}
           </div>
         </div>
-        <div class="section">
-          <h3>${t.entities}</h3>
-          ${[
-            ["door_entities", t.door, c.door_entities, ["lock"]],
-            ["gate_entities", t.gate, c.gate_entities, ["cover"]],
-            ["person_entities", t.person, c.person_entities, ["person"]],
-        ].map(([k, l, v, d]) => b `<label class="field"
-                >${l}<ha-selector
-                  name=${k}
-                  .hass=${this.hass}
-                  .selector=${{ entity: { multiple: true, domain: d } }}
-                  .value=${v || []}
-                  @value-changed=${(e) => this.save(k, e.detail.value || [])}
-                ></ha-selector
-              ></label>`)}
-        </div>
-        <div class="section">
-          <h3>${t.automation}</h3>
-          <label class="toggle"
-            >${t.autoReturn}<ha-switch
-              .checked=${!!c.auto_return}
-              @change=${(e) => this.save("auto_return", e.target.checked)}
-            ></ha-switch></label
-          ><label class="toggle"
-            >${t.autoAway}<ha-switch
-              .checked=${!!c.auto_away}
-              @change=${(e) => this.save("auto_away", e.target.checked)}
-            ></ha-switch></label
-          ><label class="field"
-            >${t.grace}<input
-              name="auto_away_grace"
-              type="number"
-              min="0"
-              .value=${String(c.auto_away_grace ?? 300)}
-              @change=${(e) => this.save("auto_away_grace", Number(e.target.value))} /></label
-          ><label class="field"
-            >${t.schedule}<select
-              .value=${sch.type}
-              @change=${(e) => this.save("night_schedule", { type: e.target.value })}
-            >
-              <option value="off">${t.none}</option>
-              <option value="fixed">${t.fixed}</option>
-              <option value="sun">${t.sun}</option>
-            </select></label
-          >${sch.type === "fixed" ? b `<label class="field">${t.fixed}<input type="time" step="1" .value=${sch.time || "22:00:00"} @change=${(e) => this.save("night_schedule", { ...sch, time: e.target.value.length === 5 ? e.target.value + ":00" : e.target.value })} /></label>` : A}${sch.type === "sun"
-            ? b `<div class="grid">
-                  <label class="field"
-                    >${t.event}<select
-                      .value=${sch.event || "sunset"}
-                      @change=${(e) => this.save("night_schedule", { ...sch, event: e.target.value })}
-                    >
-                      <option value="sunset">${t.sunset}</option>
-                      <option value="sunrise">${t.sunrise}</option>
-                    </select></label
-                  ><label class="field"
-                    >${t.offset}<input
-                      type="number"
-                      .value=${String(sch.offset || 0)}
-                      @change=${(e) => this.save("night_schedule", { ...sch, offset: Number(e.target.value) })}
-                  /></label>
-                </div>`
+        ${node
+            ? b `<div class="section grid">
+                <label class="field"
+                  >${t.name}<input
+                    name="node-name"
+                    .value=${node.name}
+                    maxlength="100"
+                    @input=${(e) => this.patchNode({ name: e.target.value })} /></label
+                ><label class="field"
+                  >${t.id}<input .value=${node.id} disabled /></label
+                ><label class="field"
+                  >${t.parent}<select
+                    @change=${(e) => this.reparent(e.target.value || null)}
+                  >
+                    <option value="" ?selected=${node.parent === null}>
+                      —
+                    </option>
+                    ${d.state_tree.filter((n) => !blocked.has(n.id)).map((n) => b `<option value=${n.id} ?selected=${node.parent === n.id}>${n.name}</option>`)}
+                  </select></label
+                ><label class="field"
+                  >${t.scene}<ha-entity-picker
+                    .hass=${this.hass}
+                    .value=${node.scene}
+                    .includeDomains=${["scene"]}
+                    allow-custom-entity
+                    @value-changed=${(e) => this.patchNode({ scene: e.detail.value || "" })}
+                  ></ha-entity-picker></label
+                ><label class="field"
+                  >${t.defaultChild}<select
+                    @change=${(e) => this.patchNode({ default_child: e.target.value || null })}
+                  >
+                    <option value="" ?selected=${node.default_child === null}>
+                      —
+                    </option>
+                    ${this.branches(node.id, d.state_tree).map((n) => b `<option value=${n.id} ?selected=${node.default_child === n.id}>${n.name}</option>`)}
+                  </select></label
+                ><label class="field"
+                  >${t.occupied}<select
+                    @change=${(e) => this.patchNode({ occupied: e.target.value === "inherit" ? null : e.target.value === "true" })}
+                  >
+                    <option value="inherit" ?selected=${node.occupied === null}>
+                      ${t.inherit}
+                    </option>
+                    <option value="true" ?selected=${node.occupied === true}>
+                      ${t.yes}
+                    </option>
+                    <option value="false" ?selected=${node.occupied === false}>
+                      ${t.no}
+                    </option>
+                  </select></label
+                ><button
+                  data-action="add-child"
+                  @click=${() => this.addNode(node.id)}
+                >
+                  ${t.addChild}</button
+                ><button
+                  data-action="remove-node"
+                  ?disabled=${d.state_tree.length === 1}
+                  @click=${this.removeNode}
+                >
+                  ${t.remove}
+                </button>
+              </div>`
             : A}
+        <div class="section grid">
+          <label class="field"
+            >${t.initial}<select
+              @change=${(e) => (this.draft = { ...d, initial_state: e.target.value })}
+            >
+              ${d.state_tree.map((n) => b `<option value=${n.id} ?selected=${d.initial_state === n.id}>${n.name}</option>`)}
+            </select></label
+          >${["arrival", "departure", "vacation", "night"].map((role) => b `<label class="field"
+                >${t[role]}<select
+                  @change=${(e) => (this.draft = { ...d, roles: { ...d.roles, [role]: e.target.value || null } })}
+                >
+                  <option value="" ?selected=${!d.roles[role]}>—</option>
+                  ${d.state_tree.filter((n) => (role === "arrival" || role === "night" ? this.isOccupied(n.id, d.state_tree) : !this.isOccupied(n.id, d.state_tree))).map((n) => b `<option value=${n.id} ?selected=${d.roles[role] === n.id}>${n.name}</option>`)}
+                </select></label
+              >`)}
         </div>
         <div class="section">
-          <h3>${t.legacy}</h3>
-          <div class="grid">
-            ${["presence", "mode", "overlay"].map((k) => b `<label class="field">${t[k] || k}<ha-entity-picker .hass=${this.hass} .value=${c.legacy_mirror?.[k] || ""} .includeDomains=${["input_select"]} allow-custom-entity @value-changed=${(e) => this.save("legacy_mirror", { ...c.legacy_mirror, [k]: e.detail.value || "" })}></ha-entity-picker></label>`)}
+          <div class="row">
+            <h3>${t.overlays}</h3>
+            <button
+              @click=${() => {
+            const id = this.newId("new_overlay", d.overlays.map((o) => ({
+                ...o,
+                parent: null,
+                default_child: null,
+                occupied: null,
+            })));
+            this.draft = {
+                ...d,
+                overlays: [
+                    ...d.overlays,
+                    { id, name: this.t.newOverlay, scene: "" },
+                ],
+            };
+        }}
+            >
+              ${t.addOverlay}
+            </button>
           </div>
+          ${d.overlays.map((o, i) => b `<div class="grid">
+                <label class="field"
+                  >${t.name}<input
+                    .value=${o.name}
+                    @input=${(e) => {
+            const overlays = [...d.overlays];
+            overlays[i] = {
+                ...o,
+                name: e.target.value,
+            };
+            this.draft = { ...d, overlays };
+        }} /></label
+                ><label class="field"
+                  >${t.scene}<ha-entity-picker
+                    .hass=${this.hass}
+                    .value=${o.scene}
+                    .includeDomains=${["scene"]}
+                    @value-changed=${(e) => {
+            const overlays = [...d.overlays];
+            overlays[i] = { ...o, scene: e.detail.value || "" };
+            this.draft = { ...d, overlays };
+        }}
+                  ></ha-entity-picker></label
+                ><button
+                  @click=${() => (this.draft = { ...d, overlays: d.overlays.filter((x) => x.id !== o.id) })}
+                >
+                  ${t.remove}
+                </button>
+              </div>`)}
         </div>
+        ${this.operationalSettings(cfg, sch)}
       </div>
       <div class="dialog-actions">
         <button
           data-action="apply-scene"
-          class="primary"
           @click=${() => this.call("apply_scene", { force: true })}
         >
           ${t.apply}</button
-        ><button @click=${this.close}>${t.close}</button>
+        ><span></span><button @click=${this.close}>${t.cancel}</button
+        ><button
+          data-action="save"
+          class="primary"
+          ?disabled=${this.busy}
+          @click=${this.saveDraft}
+        >
+          ${t.save}
+        </button>
       </div>
     </dialog>`;
     }
+    operationalSettings(c, sch) {
+        return b `<div class="section">
+        <h3>${this.t.entities}</h3>
+        ${[
+            ["door_entities", c.door_entities, ["lock"]],
+            ["gate_entities", c.gate_entities, ["cover"]],
+            ["person_entities", c.person_entities, ["person"]],
+        ].map(([key, value, domain]) => b `<label class="field"
+              >${this.t[String(key).replace("_entities", "")]}<ha-selector
+                .hass=${this.hass}
+                .selector=${{ entity: { multiple: true, domain } }}
+                .value=${value || []}
+                @value-changed=${(e) => this.saveOption(String(key), e.detail.value || [])}
+              ></ha-selector
+            ></label>`)}
+      </div>
+      <div class="section">
+        <h3>${this.t.automation}</h3>
+        <label class="toggle"
+          >${this.t.autoReturn}<ha-switch
+            .checked=${c.auto_return}
+            @change=${(e) => this.saveOption("auto_return", e.target.checked)}
+          ></ha-switch></label
+        ><label class="toggle"
+          >${this.t.autoAway}<ha-switch
+            .checked=${c.auto_away}
+            @change=${(e) => this.saveOption("auto_away", e.target.checked)}
+          ></ha-switch></label
+        ><label class="field"
+          >${this.t.grace}<input
+            type="number"
+            .value=${String(c.auto_away_grace || 300)}
+            @change=${(e) => this.saveOption("auto_away_grace", Number(e.target.value))} /></label
+        ><label class="field"
+          >${this.t.schedule}<select
+            @change=${(e) => {
+            const type = e.target.value;
+            this.saveOption("night_schedule", type === "fixed"
+                ? { type, time: "22:00:00" }
+                : type === "sun"
+                    ? { type, event: "sunset", offset: 0 }
+                    : { type: "off" });
+        }}
+          >
+            <option value="off" ?selected=${sch.type === "off"}>Off</option>
+            <option value="fixed" ?selected=${sch.type === "fixed"}>
+              Fixed
+            </option>
+            <option value="sun" ?selected=${sch.type === "sun"}>Sun</option>
+          </select></label
+        >
+        ${sch.type === "fixed"
+            ? b `<label class="field"
+                >Time<input
+                  type="time"
+                  step="1"
+                  .value=${sch.time || "22:00:00"}
+                  @change=${(e) => {
+                const value = e.target.value;
+                this.saveOption("night_schedule", {
+                    type: "fixed",
+                    time: value.length === 5 ? `${value}:00` : value,
+                });
+            }}
+              /></label>`
+            : A}
+        ${sch.type === "sun"
+            ? b `<div class="grid">
+                <label class="field"
+                  >Event<select
+                    @change=${(e) => this.saveOption("night_schedule", { ...sch, event: e.target.value })}
+                  >
+                    <option
+                      value="sunset"
+                      ?selected=${(sch.event || "sunset") === "sunset"}
+                    >
+                      Sunset
+                    </option>
+                    <option
+                      value="sunrise"
+                      ?selected=${sch.event === "sunrise"}
+                    >
+                      Sunrise
+                    </option>
+                  </select></label
+                ><label class="field"
+                  >Offset (seconds)<input
+                    type="number"
+                    .value=${String(sch.offset || 0)}
+                    @change=${(e) => this.saveOption("night_schedule", { ...sch, offset: Number(e.target.value) })}
+                /></label>
+              </div>`
+            : A}
+        <div class="grid">
+          ${["state", "overlay"].map((key) => b `<label class="field"
+                >Legacy ${key}<ha-entity-picker
+                  .hass=${this.hass}
+                  .value=${c.legacy_mirror?.[key] || ""}
+                  .includeDomains=${["input_select"]}
+                  allow-custom-entity
+                  @value-changed=${(e) => {
+            const mirror = { ...c.legacy_mirror };
+            if (e.detail.value)
+                mirror[key] = e.detail.value;
+            else
+                delete mirror[key];
+            this.saveOption("legacy_mirror", mirror);
+        }}
+                ></ha-entity-picker
+              ></label>`)}
+        </div>
+      </div>`;
+    }
 };
-Card.styles = styles;
+HouseStateCard.styles = styles;
 __decorate([
     n({ attribute: false })
-], Card.prototype, "hass", void 0);
+], HouseStateCard.prototype, "hass", void 0);
 __decorate([
     r()
-], Card.prototype, "config", void 0);
+], HouseStateCard.prototype, "config", void 0);
 __decorate([
     r()
-], Card.prototype, "busy", void 0);
-Card = __decorate([
+], HouseStateCard.prototype, "busy", void 0);
+__decorate([
+    r()
+], HouseStateCard.prototype, "draft", void 0);
+__decorate([
+    r()
+], HouseStateCard.prototype, "selected", void 0);
+HouseStateCard = __decorate([
     t("lovelace-house-state-card")
-], Card);
-const w = window;
-w.customCards = w.customCards || [];
-w.customCards.push({
+], HouseStateCard);
+const registry = window;
+registry.customCards = registry.customCards || [];
+registry.customCards.push({
     type: "lovelace-house-state-card",
     name: "House State Card",
-    description: "Control House State",
 });
 
-export { Card };
+export { HouseStateCard };
 //# sourceMappingURL=lovelace-house-state-card.js.map

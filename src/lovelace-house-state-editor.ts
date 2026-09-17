@@ -19,7 +19,6 @@ const schema = [
     selector: { entity: { integration: "house_state", domain: "sensor" } },
   },
   { name: "name", selector: { text: {} } },
-  { name: "show_activity", selector: { boolean: {} } },
   { name: "show_overlay", selector: { boolean: {} } },
   { name: "confirm_vacation", selector: { boolean: {} } },
 ];
@@ -30,7 +29,6 @@ export class Editor extends LitElement {
   setConfig(c: CardConfig) {
     this.config = {
       appearance: "default",
-      show_activity: true,
       show_overlay: true,
       confirm_vacation: true,
       ...c,
@@ -52,7 +50,7 @@ export class Editor extends LitElement {
       .hass=${this.hass}
       .data=${this.config}
       .schema=${schema}
-      .computeLabel=${(x: { name: string }) => ({ appearance: "Appearance", entity: "House State entity", name: "Name", show_activity: "Show activity", show_overlay: "Show overlay", confirm_vacation: "Confirm vacation" })[x.name] || x.name}
+      .computeLabel=${(x: { name: string }) => ({ appearance: "Appearance", entity: "House State entity", name: "Name", show_overlay: "Show overlay", confirm_vacation: "Confirm vacation" })[x.name] || x.name}
       @value-changed=${this.changed}
     ></ha-form>`;
   }

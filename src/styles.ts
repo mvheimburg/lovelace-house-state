@@ -2,9 +2,13 @@ import { css } from "lit";
 export const styles = css`
   :host {
     display: block;
+    width: 100%;
+    box-sizing: border-box;
     color: var(--primary-text-color);
   }
   ha-card {
+    box-sizing: border-box;
+    width: 100%;
     padding: 18px;
     border-radius: var(--ha-card-border-radius, 12px);
     background: var(--ha-card-background, var(--card-background-color));
@@ -38,9 +42,8 @@ export const styles = css`
     padding: 8px;
   }
   .segment {
-    display: grid;
-    grid-auto-flow: column;
-    grid-auto-columns: 1fr;
+    display: flex;
+    flex-wrap: wrap;
     gap: 4px;
     background: var(--secondary-background-color);
     padding: 4px;
@@ -55,6 +58,11 @@ export const styles = css`
     background: transparent;
     color: var(--primary-text-color);
     cursor: pointer;
+  }
+  .segment button {
+    flex: 1 1 96px;
+    min-width: 0;
+    overflow-wrap: anywhere;
   }
   .segment button.active,
   .chips button.active {
@@ -122,6 +130,28 @@ export const styles = css`
   }
   .section {
     margin-bottom: 20px;
+  }
+  .tree-list {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    margin-top: 8px;
+  }
+  .tree-list button {
+    display: flex;
+    justify-content: space-between;
+    border: 0;
+    padding-block: 8px;
+    background: transparent;
+    color: inherit;
+    text-align: left;
+    border-radius: 8px;
+  }
+  .tree-list button.active {
+    background: var(--secondary-background-color);
+  }
+  .tree-list small {
+    color: var(--secondary-text-color);
   }
   .grid {
     display: grid;
