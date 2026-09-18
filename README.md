@@ -2,9 +2,11 @@
 
 A compact Home Assistant card for the [`house_state`](https://github.com/mvheimburg/house-state) integration. It renders any configured state tree, selects independent overlays, and keeps everyday controls on the dashboard.
 
-![House State card showing a custom four-level state tree and a Winter lights overlay](images/state-tree.png)
+![House State card in Bubble appearance on a dark theme: a normal evening with a pending Christmas scene, and the in-card vacation confirmation](images/bubble-night.png)
 
-Example with a custom state tree in Bubble appearance.
+![The same card on a light theme, and while a state change is pending](images/light.png)
+
+The images use the production bundle with simulated Home Assistant states.
 
 ## Install
 
@@ -25,7 +27,16 @@ All card display options are available in the Lovelace visual editor. The integr
 
 **House State integration 0.3.0 or later is required for the central configuration flow.** Open **Settings → Devices & services → House State → Configure** to manage the state tree, scenes, default children, occupancy, automation roles, overlays and activation rules, door/gate/person entities, automatic return/away, grace period, night schedule and legacy mirrors through the integration's structured forms. The card's settings cog is a native link to the House State integration page, including while the sensor is unavailable.
 
-The dashboard card contains state selection, optional overlay selection, status, vacation confirmation and **Apply scene now**. That action calls `house_state.apply_scene` with `force: true` to resynchronize devices. The card no longer edits integration configuration or calls `house_state.set_config`. During an integration reload it retains the last valid display with actions disabled; refreshed sensor data restores the controls. State, overlay and scene actions are also disabled while a request is pending.
+The dashboard card contains status, state selection, optional overlay selection, vacation confirmation and **Apply scene now**.
+
+### What the card shows (0.4.0)
+
+- **Status first.** The current state in large type with why and when it changed ("Changed manually 1 h 12 min ago"), the path through the tree, whether someone is home, and an active guest visit with its end time. The card's colour follows the house: occupied, away, or in the vacation role's branch.
+- **States as pills.** The top level is one row; deeper levels sit together below it. The path in force is tinted and the current state is filled. The integration's starter states (Home, Day, TV, Eating, Night, Away, Vacation) get icons; custom states show their names only.
+- **Overlay.** The overlay in force, why (Automatic with the rule that picked it, or chosen manually and until when), and one chip per choice.
+- **Vacation confirmation inside the card.** Choosing a state in the vacation role's branch opens a panel naming the state and, when water valves are configured, that the water is shut off and that a guest visit opens it again. Nothing is sent until you confirm.
+- **Apply scene now** says when the selected scene has not run yet (`scene_stale`) or is waiting to run (`application_pending`).
+- **Feedback.** While a request is pending the card says what it is doing and locks its controls; a failure stays visible in the card (and as a Home Assistant notification) with the state that is still selected. A water valve House State could not move is reported. That action calls `house_state.apply_scene` with `force: true` to resynchronize devices. The card no longer edits integration configuration or calls `house_state.set_config`. During an integration reload it retains the last valid display with actions disabled; refreshed sensor data restores the controls. State, overlay and scene actions are also disabled while a request is pending.
 
 State changes call `house_state.set` with `{state, reason: user}`. Overlay changes use `{overlay, reason: user}`. The card reads `active_path`, `state_tree`, `overlays`, `overlay_choice`, `overlay_rule`, `overlay_hold_until`, and `config` from the hub sensor.
 
@@ -51,6 +62,7 @@ npm test
 npm run lint
 npm run typecheck
 npm run build
+node scripts/screenshot.cjs
 ```
 
-Version 0.3.0.
+Version 0.4.0.

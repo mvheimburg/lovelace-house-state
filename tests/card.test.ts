@@ -123,18 +123,62 @@ describe("configurable tree card", () => {
       }),
     );
   });
-  it("confirms vacation role descendants", async () => {
-    vi.spyOn(window, "confirm").mockReturnValue(false);
+  it("confirms vacation role descendants inside the card", async () => {
+    const confirm = vi.spyOn(window, "confirm");
     const { el, callService } = await setup({
       state: "present",
       active_path: ["present"],
+      config: { ...config, water_valves: ["valve.main"] },
     });
+    el.hass = {
+      ...el.hass,
+      states: {
+        ...el.hass.states,
+        "valve.main": {
+          entity_id: "valve.main",
+          state: "open",
+          attributes: { friendly_name: "Main tap" },
+        },
+      },
+    };
+    await el.updateComplete;
     el.shadowRoot!.querySelector('[data-state="trip"]').click();
-    expect(window.confirm).toHaveBeenCalled();
+    await el.updateComplete;
+    const panel = el.shadowRoot!.querySelector("[data-confirm-vacation]");
+    expect(panel?.getAttribute("role")).toBe("alertdialog");
+    expect(panel?.textContent).toContain("Switch to On a trip?");
+    expect(panel?.textContent).toContain("The water is shut off: Main tap");
+    expect(confirm).not.toHaveBeenCalled();
     expect(callService).not.toHaveBeenCalled();
+    el.shadowRoot!.querySelector("[data-cancel]").click();
+    await el.updateComplete;
+    expect(el.shadowRoot!.querySelector("[data-confirm-vacation]")).toBeNull();
+    expect(callService).not.toHaveBeenCalled();
+    el.shadowRoot!.querySelector('[data-state="trip"]').click();
+    await el.updateComplete;
+    el.shadowRoot!.querySelector("[data-confirm]").click();
+    await vi.waitFor(() =>
+      expect(callService).toHaveBeenCalledWith("house_state", "set", {
+        entity_id: "sensor.house_state",
+        state: "trip",
+        reason: "user",
+      }),
+    );
+    expect(el.shadowRoot!.querySelector("[data-confirm-vacation]")).toBeNull();
+  });
+  it("switches straight to vacation when the card is told not to confirm", async () => {
+    const { el, callService } = await setup();
+    el.setConfig({
+      type: "custom:lovelace-house-state-card",
+      entity: "sensor.house_state",
+      confirm_vacation: false,
+    });
+    await el.updateComplete;
+    el.shadowRoot!.querySelector('[data-state="trip"]').click();
+    await vi.waitFor(() => expect(callService).toHaveBeenCalledTimes(1));
+    expect(el.shadowRoot!.querySelector("[data-confirm-vacation]")).toBeNull();
   });
   it("confirms when a selected ancestor defaults into vacation", async () => {
-    vi.spyOn(window, "confirm").mockReturnValue(false);
     const nodes = [
       ...tree.map((n) => (n.id === "trip" ? { ...n, parent: "travel" } : n)),
       {
@@ -151,15 +195,17 @@ describe("configurable tree card", () => {
       config: { ...config, state_tree: nodes },
     });
     el.shadowRoot!.querySelector('[data-state="travel"]').click();
-    expect(window.confirm).toHaveBeenCalled();
+    await el.updateComplete;
+    expect(
+      el.shadowRoot!.querySelector("[data-confirm-vacation]")?.textContent,
+    ).toContain("Switch to Travel?");
     expect(callService).not.toHaveBeenCalled();
   });
   it("renders and selects custom overlays by name", async () => {
     const { el, callService } = await setup();
-    const s = el.shadowRoot!.querySelector(".overlay") as HTMLSelectElement;
-    expect(s.textContent).toContain("Cozy lights");
-    s.value = "cozy";
-    s.dispatchEvent(new Event("change"));
+    const chip = el.shadowRoot!.querySelector('[data-overlay="cozy"]');
+    expect(chip.textContent.trim()).toBe("Cozy lights");
+    chip.click();
     await vi.waitFor(() =>
       expect(callService).toHaveBeenCalledWith("house_state", "set", {
         entity_id: "sensor.house_state",
@@ -168,26 +214,35 @@ describe("configurable tree card", () => {
       }),
     );
   });
-  it("surfaces service failures", async () => {
-    vi.spyOn(window, "confirm").mockReturnValue(true);
+  it("surfaces service failures in the card and as a notification", async () => {
     const { el, callService } = await setup();
     callService.mockRejectedValueOnce(new Error("offline"));
     const fn = vi.fn();
     el.addEventListener("hass-notification", fn);
     el.shadowRoot!.querySelector('[data-state="trip"]').click();
+    await el.updateComplete;
+    el.shadowRoot!.querySelector("[data-confirm]").click();
     await vi.waitFor(() => expect(fn).toHaveBeenCalled());
     expect(fn.mock.calls[0][0].detail.message).toContain("offline");
+    await el.updateComplete;
+    const failed = el.shadowRoot!.querySelector(".feedback.failed");
+    expect(failed?.getAttribute("role")).toBe("alert");
+    expect(failed?.textContent).toContain("offline");
+    expect(failed?.textContent).toContain("Reading is still selected");
   });
   it("restores the authoritative overlay after a rejected change", async () => {
     const { el, callService } = await setup({ overlay: "none" });
     callService.mockRejectedValueOnce(new Error("offline"));
-    const select = el.shadowRoot!.querySelector(
-      ".overlay",
-    ) as HTMLSelectElement;
-    select.value = "cozy";
-    select.dispatchEvent(new Event("change"));
+    const pressed = () =>
+      [
+        ...el.shadowRoot!.querySelectorAll(
+          '[data-overlay][aria-pressed="true"]',
+        ),
+      ].map((chip: any) => chip.dataset.overlay);
+    el.shadowRoot!.querySelector('[data-overlay="cozy"]').click();
     await vi.waitFor(() => expect(callService).toHaveBeenCalled());
-    await vi.waitFor(() => expect(select.value).toBe("none"));
+    await el.updateComplete;
+    expect(pressed()).toEqual(["none"]);
   });
 });
 
@@ -206,27 +261,33 @@ describe("date-driven overlays", () => {
   it("offers automatic only when an overlay carries a rule", async () => {
     const { el } = await setup();
     const plain = [
-      ...el.shadowRoot!.querySelectorAll(".overlay option"),
-    ] as HTMLOptionElement[];
-    expect(plain.map((o) => o.value)).toEqual(["none", "cozy"]);
+      ...el.shadowRoot!.querySelectorAll("[data-overlay]"),
+    ] as HTMLElement[];
+    expect(plain.map((o) => o.dataset.overlay)).toEqual(["none", "cozy"]);
 
     const ruledCard = await setup({ ...withRules, overlay_choice: "auto" });
     const options = [
-      ...ruledCard.el.shadowRoot!.querySelectorAll(".overlay option"),
-    ] as HTMLOptionElement[];
-    expect(options.map((o) => o.value)).toEqual(["auto", "none", "cozy"]);
+      ...ruledCard.el.shadowRoot!.querySelectorAll("[data-overlay]"),
+    ] as HTMLElement[];
+    expect(options.map((o) => o.dataset.overlay)).toEqual([
+      "auto",
+      "none",
+      "cozy",
+    ]);
   });
-  it("names the rule-selected overlay on the automatic option", async () => {
+  it("names the rule-selected overlay in the overlay caption", async () => {
     const { el } = await setup({
       ...withRules,
       overlay_choice: "auto",
       overlay: "cozy",
       overlay_rule: "cozy",
     });
-    const auto = el.shadowRoot!.querySelector(
-      '.overlay option[value="auto"]',
-    ) as HTMLOptionElement;
-    expect(auto.textContent!.trim()).toBe("Automatic · Cozy lights");
+    expect(
+      el.shadowRoot!.querySelector(".overlay-caption")!.textContent!.trim(),
+    ).toBe("Automatic · Cozy lights");
+    expect(
+      el.shadowRoot!.querySelector(".panel-value")!.textContent!.trim(),
+    ).toBe("Cozy lights");
   });
   it("reflects the choice rather than the overlay in force", async () => {
     const { el } = await setup({
@@ -236,14 +297,18 @@ describe("date-driven overlays", () => {
       overlay_rule: "cozy",
     });
     expect(
-      (el.shadowRoot!.querySelector(".overlay") as HTMLSelectElement).value,
-    ).toBe("auto");
+      el
+        .shadowRoot!.querySelector('[data-overlay="auto"]')!
+        .getAttribute("aria-pressed"),
+    ).toBe("true");
   });
   it("falls back to the overlay when the hub predates rules", async () => {
     const { el } = await setup({ overlay: "cozy" });
     expect(
-      (el.shadowRoot!.querySelector(".overlay") as HTMLSelectElement).value,
-    ).toBe("cozy");
+      el
+        .shadowRoot!.querySelector('[data-overlay="cozy"]')!
+        .getAttribute("aria-pressed"),
+    ).toBe("true");
   });
   it("shows when a manual hold expires", async () => {
     const { el } = await setup({
@@ -251,14 +316,15 @@ describe("date-driven overlays", () => {
       overlay_choice: "none",
       overlay_hold_until: new Date("2026-12-10T23:00:00Z").toISOString(),
     });
-    const status = el.shadowRoot!.querySelector(".status")!.textContent!;
-    expect(status).toContain("manual until");
+    const caption =
+      el.shadowRoot!.querySelector(".overlay-caption")!.textContent!;
+    expect(caption).toContain("Chosen manually · manual until");
   });
   it("leaves the status clean without a hold", async () => {
     const { el } = await setup(withRules);
-    expect(el.shadowRoot!.querySelector(".status")!.textContent).not.toContain(
-      "manual until",
-    );
+    expect(
+      el.shadowRoot!.querySelector(".overlay-caption")!.textContent,
+    ).not.toContain("manual until");
   });
 });
 
@@ -268,15 +334,13 @@ describe("Bokmål presentation with English configuration", () => {
     el.hass = { ...el.hass, language: "nb-NO", locale: { language: "en" } };
     await el.updateComplete;
     expect(
-      el.shadowRoot
-        .querySelector('.overlay option[value="none"]')
-        .textContent.trim(),
+      el.shadowRoot.querySelector('[data-overlay="none"]').textContent.trim(),
     ).toBe("Av");
     expect(
       el.shadowRoot.querySelector('[aria-label="Innstillinger"]'),
     ).not.toBeNull();
     expect(el.shadowRoot.querySelector(".status").textContent).toContain(
-      "låst opp dør",
+      "Låst opp dør for 1 t 0 min siden",
     );
     expect(
       el.shadowRoot.querySelector('[data-state="awake"]').textContent,
@@ -412,11 +476,12 @@ it("translates unmodified starter labels but preserves custom names and stored n
     "Our cabin",
   );
   expect(
-    el.shadowRoot.querySelector('.overlay option[value="christmas"]')
-      .textContent,
+    el.shadowRoot
+      .querySelector('[data-overlay="christmas"]')
+      .textContent.trim(),
   ).toBe("Jul");
   expect(
-    el.shadowRoot.querySelector('.overlay option[value="party"]').textContent,
+    el.shadowRoot.querySelector('[data-overlay="party"]').textContent.trim(),
   ).toBe("Friends visiting");
   el.shadowRoot.querySelector('[data-state="day"]').click();
   await vi.waitFor(() =>
@@ -487,7 +552,14 @@ describe("everyday controls and central configuration", () => {
     };
     await el.updateComplete;
     expect(el.shadowRoot.querySelectorAll("[data-state]")).toHaveLength(5);
-    expect(el.shadowRoot.querySelector(".overlay").value).toBe("cozy");
+    expect(
+      el.shadowRoot
+        .querySelector('[data-overlay="cozy"]')
+        .getAttribute("aria-pressed"),
+    ).toBe("true");
+    expect(el.shadowRoot.querySelector(".note").textContent).toContain(
+      "Reloading",
+    );
     for (const control of el.shadowRoot.querySelectorAll("button, select"))
       expect(control.disabled).toBe(true);
     expect(el.shadowRoot.querySelector("a.icon").getAttribute("href")).toBe(
@@ -553,12 +625,118 @@ it("preserves regional clock formatting independently of dictionary fallback", a
   const { el } = await setup({ overlay_hold_until: held });
   el.hass = { ...el.hass, language: "en_GB", locale: { language: "nb" } };
   await el.updateComplete;
-  expect(el.shadowRoot.querySelector(".status").textContent).toContain(
+  expect(el.shadowRoot.querySelector(".overlay-caption").textContent).toContain(
     `manual until ${new Date(held).toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" })}`,
   );
   el.hass = { ...el.hass, language: "bad_language_tag" };
   await el.updateComplete;
-  expect(el.shadowRoot.querySelector(".status").textContent).toContain(
+  expect(el.shadowRoot.querySelector(".overlay-caption").textContent).toContain(
     "manual until",
   );
+});
+
+describe("status and feedback", () => {
+  it("says what the house is doing, why, and who is home", async () => {
+    const { el } = await setup({
+      visit: { expires: "2026-09-18T16:00:00Z" },
+    });
+    const hero = el.shadowRoot.querySelector(".hero").textContent;
+    expect(el.shadowRoot.querySelector(".current").textContent.trim()).toBe(
+      "Reading",
+    );
+    expect(el.shadowRoot.querySelector(".status").textContent.trim()).toBe(
+      "Door unlocked 1 h 0 min ago",
+    );
+    expect(hero).toContain("Here › Awake › Quiet › Reading");
+    expect(hero).toContain("someone is home");
+    expect(hero).toContain("guest until");
+    expect(el.shadowRoot.querySelector("ha-card").className).toContain(
+      "tone-home",
+    );
+  });
+  it("marks vacation and away with their own tone", async () => {
+    const trip = await setup({
+      state: "long_trip",
+      active_path: ["trip", "long_trip"],
+      occupied: false,
+    });
+    expect(trip.el.shadowRoot.querySelector("ha-card").className).toContain(
+      "tone-vacation",
+    );
+    document.body.replaceChildren();
+    const away = await setup({
+      config: { ...config, roles: { ...config.roles, vacation: null } },
+      state: "long_trip",
+      active_path: ["trip", "long_trip"],
+      occupied: false,
+    });
+    expect(away.el.shadowRoot.querySelector("ha-card").className).toContain(
+      "tone-away",
+    );
+  });
+  it("tells when the scene has not run and while a request is pending", async () => {
+    const { el, callService } = await setup({
+      scene_stale: true,
+      overlay: "cozy",
+    });
+    const apply = el.shadowRoot.querySelector('[data-action="apply"]');
+    expect(apply.className).toContain("attention");
+    expect(apply.textContent).toContain(
+      "Cozy lights: the scene has not run yet",
+    );
+    let resolve!: () => void;
+    callService.mockImplementationOnce(
+      () => new Promise<void>((done) => (resolve = done)),
+    );
+    el.shadowRoot.querySelector('[data-state="awake"]').click();
+    await el.updateComplete;
+    const pending = el.shadowRoot.querySelector('.feedback[role="status"]');
+    expect(pending.textContent).toContain("Switching to Awake…");
+    expect(pending.textContent).toContain("Controls are locked");
+    resolve();
+    await vi.waitFor(() =>
+      expect(el.shadowRoot.querySelector(".feedback")).toBeNull(),
+    );
+  });
+  it("reports a water valve House State could not move", async () => {
+    const { el } = await setup({
+      water: {
+        desired: "closed",
+        status: "failed",
+        valves: { "valve.main": "failed", "valve.cabin": "closed" },
+      },
+    });
+    expect(el.shadowRoot.querySelector(".note.warn").textContent).toContain(
+      "Water valve problem: valve.main",
+    );
+  });
+  it("gives starter states icons and leaves custom states plain", async () => {
+    const { el } = await setup();
+    expect(
+      el.shadowRoot.querySelector('[data-state="present"] svg'),
+    ).toBeNull();
+    document.body.replaceChildren();
+    const starter = [
+      {
+        id: "home",
+        name: "Home",
+        parent: null,
+        scene: "",
+        default_child: null,
+        occupied: true,
+      },
+    ];
+    const home = await setup({
+      state: "home",
+      active_path: ["home"],
+      state_tree: starter,
+      config: { ...config, state_tree: starter },
+    });
+    expect(
+      home.el.shadowRoot.querySelector('[data-state="home"] svg'),
+    ).not.toBeNull();
+    expect(
+      home.el.shadowRoot.querySelector('[data-state="home"]').textContent,
+    ).toBe("Home");
+  });
 });
