@@ -1,6 +1,7 @@
 import { LitElement, html, nothing } from "lit";
 import { customElement, property, state } from "lit/decorators.js";
 import { styles } from "./styles";
+import { language, localize, displayName } from "./localize";
 import type {
   CardConfig,
   DateRule,
@@ -16,186 +17,6 @@ import type {
 import "./lovelace-house-state-editor";
 
 const copy = <T>(value: T): T => JSON.parse(JSON.stringify(value));
-const labels = {
-  en: {
-    settings: "Settings",
-    close: "Close",
-    off: "Off",
-    apply: "Apply scene now",
-    save: "Save",
-    cancel: "Cancel",
-    tree: "State tree",
-    addRoot: "Add root",
-    addChild: "Add child",
-    remove: "Remove subtree",
-    name: "Name",
-    id: "ID",
-    parent: "Parent",
-    scene: "Scene",
-    defaultChild: "Default child",
-    occupied: "Is someone home?",
-    inherit: "Inherit",
-    yes: "Yes",
-    no: "No",
-    initial: "Initial state",
-    roles: "Automation roles",
-    overlays: "Overlays",
-    addOverlay: "Add overlay",
-    entities: "Entities",
-    automation: "Automation",
-    vacationConfirm: "Switch to vacation?",
-    arrival: "Arrival",
-    departure: "Departure",
-    vacation: "Vacation",
-    night: "Night",
-    door: "Doors",
-    gate: "Gates",
-    person: "People",
-    autoReturn: "Automatic return",
-    autoAway: "Automatic away",
-    grace: "Away grace (seconds)",
-    schedule: "Night schedule",
-    missing: "Entity not found",
-    newState: "New state",
-    newOverlay: "New overlay",
-    automatic: "Automatic",
-    heldUntil: "manual until",
-    rule: "Activation",
-    rules: {
-      none: "Manual only",
-      calendar: "Calendar",
-      fixed: "Fixed dates",
-      easter: "Easter",
-      nth_weekday: "Weekday",
-    },
-    calendar: "Calendar",
-    match: "Summary matches",
-    from: "From (MM-DD)",
-    to: "To (MM-DD)",
-    fromDays: "From (days)",
-    toDays: "To (days)",
-    weekday: "Weekday",
-    weekdays: {
-      mon: "Monday",
-      tue: "Tuesday",
-      wed: "Wednesday",
-      thu: "Thursday",
-      fri: "Friday",
-      sat: "Saturday",
-      sun: "Sunday",
-    },
-    nth: "Which one",
-    basis: "Counted from",
-    anchorBasis: "A date",
-    monthBasis: "A month",
-    anchor: "Anchor (MM-DD)",
-    month: "Month",
-    days: "Length (days)",
-    whenOccupied: "Only when",
-    always: "Always",
-    someoneHome: "Someone home",
-    nobodyHome: "Nobody home",
-    whenState: "Only in states",
-    priority: "Priority",
-    reason: {
-      user: "changed manually",
-      door: "door unlocked",
-      gate: "gate opened",
-      presence: "presence",
-      schedule: "schedule",
-      service: "service",
-    },
-  },
-  nb: {
-    settings: "Innstillinger",
-    close: "Lukk",
-    off: "Av",
-    apply: "Bruk scene nå",
-    save: "Lagre",
-    cancel: "Avbryt",
-    tree: "Tilstandstre",
-    addRoot: "Legg til rot",
-    addChild: "Legg til barn",
-    remove: "Fjern gren",
-    name: "Navn",
-    id: "ID",
-    parent: "Forelder",
-    scene: "Scene",
-    defaultChild: "Standardbarn",
-    occupied: "Er noen hjemme?",
-    inherit: "Arv",
-    yes: "Ja",
-    no: "Nei",
-    initial: "Starttilstand",
-    roles: "Automatikkroller",
-    overlays: "Overlegg",
-    addOverlay: "Legg til overlegg",
-    entities: "Entiteter",
-    automation: "Automatikk",
-    vacationConfirm: "Bytt til ferie?",
-    arrival: "Hjemkomst",
-    departure: "Avreise",
-    vacation: "Ferie",
-    night: "Natt",
-    door: "Dører",
-    gate: "Porter",
-    person: "Personer",
-    autoReturn: "Automatisk hjemkomst",
-    autoAway: "Automatisk borte",
-    grace: "Ventetid borte (sekunder)",
-    schedule: "Nattplan",
-    missing: "Fant ikke entiteten",
-    newState: "Ny tilstand",
-    newOverlay: "Nytt overlegg",
-    automatic: "Automatisk",
-    heldUntil: "manuelt til",
-    rule: "Aktivering",
-    rules: {
-      none: "Kun manuelt",
-      calendar: "Kalender",
-      fixed: "Faste datoer",
-      easter: "Påske",
-      nth_weekday: "Ukedag",
-    },
-    calendar: "Kalender",
-    match: "Tittel matcher",
-    from: "Fra (MM-DD)",
-    to: "Til (MM-DD)",
-    fromDays: "Fra (dager)",
-    toDays: "Til (dager)",
-    weekday: "Ukedag",
-    weekdays: {
-      mon: "Mandag",
-      tue: "Tirsdag",
-      wed: "Onsdag",
-      thu: "Torsdag",
-      fri: "Fredag",
-      sat: "Lørdag",
-      sun: "Søndag",
-    },
-    nth: "Hvilken",
-    basis: "Telles fra",
-    anchorBasis: "En dato",
-    monthBasis: "En måned",
-    anchor: "Anker (MM-DD)",
-    month: "Måned",
-    days: "Lengde (dager)",
-    whenOccupied: "Bare når",
-    always: "Alltid",
-    someoneHome: "Noen hjemme",
-    nobodyHome: "Ingen hjemme",
-    whenState: "Bare i tilstander",
-    priority: "Prioritet",
-    reason: {
-      user: "endret manuelt",
-      door: "låst opp dør",
-      gate: "åpnet port",
-      presence: "tilstedeværelse",
-      schedule: "tidsplan",
-      service: "tjeneste",
-    },
-  },
-};
 
 @customElement("lovelace-house-state-card")
 export class HouseStateCard extends LitElement {
@@ -208,7 +29,7 @@ export class HouseStateCard extends LitElement {
   static styles = styles;
 
   setConfig(config: CardConfig) {
-    if (!config.entity) throw new Error("You must define an entity");
+    if (!config.entity) throw new Error(this.t.entityRequired);
     this.config = {
       appearance: "default",
       show_overlay: true,
@@ -242,9 +63,13 @@ export class HouseStateCard extends LitElement {
     };
   }
   private get t() {
-    return this.hass?.locale?.language?.toLowerCase().match(/^(nb|no)/)
-      ? labels.nb
-      : labels.en;
+    return localize(this.hass);
+  }
+  private stateName(node?: { id: string; name: string }) {
+    return node ? displayName(this.hass, node, "starterStates") : undefined;
+  }
+  private overlayName(overlay: Overlay) {
+    return displayName(this.hass, overlay, "starterOverlays");
   }
   private toast(message: string) {
     this.dispatchEvent(
@@ -264,7 +89,7 @@ export class HouseStateCard extends LitElement {
       });
       return true;
     } catch (error: any) {
-      this.toast(`House State: ${error?.message || error}`);
+      this.toast(`${this.t.errorPrefix}: ${error?.message || error}`);
       return false;
     } finally {
       this.busy = false;
@@ -306,7 +131,7 @@ export class HouseStateCard extends LitElement {
     if (!value) return "";
     const at = new Date(String(value));
     if (Number.isNaN(at.getTime())) return "";
-    const clock = at.toLocaleTimeString(undefined, {
+    const clock = at.toLocaleTimeString(language(this.hass), {
       hour: "2-digit",
       minute: "2-digit",
     });
@@ -316,10 +141,10 @@ export class HouseStateCard extends LitElement {
     const m = Math.floor((Date.now() - new Date(String(s)).getTime()) / 60000);
     if (!Number.isFinite(m) || m < 0) return "";
     return m >= 1440
-      ? `${Math.floor(m / 1440)}d ${Math.floor((m % 1440) / 60)}h`
+      ? `${Math.floor(m / 1440)}${this.t.durationDay} ${Math.floor((m % 1440) / 60)}${this.t.durationHour}`
       : m >= 60
-        ? `${Math.floor(m / 60)}h ${m % 60}m`
-        : `${m}m`;
+        ? `${Math.floor(m / 60)}${this.t.durationHour} ${m % 60}${this.t.durationMinute}`
+        : `${m}${this.t.durationMinute}`;
   }
   private branches(parent: string | null, nodes: StateNode[]) {
     return nodes.filter((n) => n.parent === parent);
@@ -511,7 +336,8 @@ export class HouseStateCard extends LitElement {
     const path: string[] = a.active_path || [];
     const overlays: Overlay[] = a.overlays || cfg.overlays || [];
     const choice = a.overlay_choice ?? a.overlay ?? "none";
-    const ruleName = overlays.find((o) => o.id === a.overlay_rule)?.name;
+    const ruleOverlay = overlays.find((o) => o.id === a.overlay_rule);
+    const ruleName = ruleOverlay ? this.overlayName(ruleOverlay) : undefined;
     const levels = [
       this.branches(null, nodes),
       ...path.map((id) => this.branches(id, nodes)),
@@ -520,22 +346,23 @@ export class HouseStateCard extends LitElement {
     return html` <ha-card
         ><div class="header">
           <div class="title">
-            ${this.config.name || a.friendly_name || "House State"}
+            ${this.config.name || a.friendly_name || this.t.title}
           </div>
           <button
             class="icon"
-            aria-label="Settings"
+            aria-label=${this.t.settings}
             ?disabled=${!available}
             @click=${() => this.open(cfg)}
           >
             <ha-icon icon="mdi:cog-outline"></ha-icon>
           </button>
         </div>
-        ${levels.map((group) => html`<div class="segment">${group.map((n) => html`<button data-state=${n.id} class=${path.includes(n.id) ? "active" : ""} ?disabled=${this.busy || !available} @click=${() => this.selectState(n.id, nodes, cfg.roles)}>${n.name}</button>`)}</div>`)}
+        ${levels.map((group) => html`<div class="segment">${group.map((n) => html`<button data-state=${n.id} class=${path.includes(n.id) ? "active" : ""} ?disabled=${this.busy || !available} @click=${() => this.selectState(n.id, nodes, cfg.roles)}>${this.stateName(n)}</button>`)}</div>`)}
         ${
           this.config.show_overlay
             ? html`<select
                 class="overlay"
+                aria-label=${this.t.overlays}
                 ?disabled=${!available}
                 @change=${(e: Event) => this.call("set", { overlay: (e.target as HTMLSelectElement).value, reason: "user" })}
               >
@@ -549,16 +376,16 @@ export class HouseStateCard extends LitElement {
                 <option value="none" ?selected=${choice === "none"}>
                   ${this.t.off}
                 </option>
-                ${overlays.map((o: Overlay) => html`<option value=${o.id} ?selected=${choice === o.id}>${o.name}</option>`)}
+                ${overlays.map((o: Overlay) => html`<option value=${o.id} ?selected=${choice === o.id}>${this.overlayName(o)}</option>`)}
               </select>`
             : nothing
         }
         <div
           class="status"
-          title=${path.map((id) => byId.get(id)?.name || id).join(" › ")}
+          title=${path.map((id) => this.stateName(byId.get(id)) || id).join(" › ")}
         >
-          ${byId.get(path[path.length - 1] || "")?.name || entity.state} ·
-          ${this.duration(a.since)} ·
+          ${this.stateName(byId.get(path[path.length - 1] || "")) || entity.state}
+          · ${this.duration(a.since)} ·
           ${(this.t.reason as Record<string, string>)[a.last_changed_by] || a.last_changed_by || ""}${this.held(a.overlay_hold_until)}
         </div></ha-card
       >${this.settings(cfg, available)}`;
@@ -624,7 +451,7 @@ export class HouseStateCard extends LitElement {
               ><label class="field"
                 >${t.match}<input
                   name="rule-match"
-                  placeholder="^jul"
+                  placeholder=${t.matchPlaceholder}
                   .value=${o.match || ""}
                   @input=${(e: Event) => patch({ match: text(e) })}
               /></label>`
@@ -758,7 +585,7 @@ export class HouseStateCard extends LitElement {
                   size="3"
                   @change=${(e: Event) => patch({ when_state: Array.from((e.target as HTMLSelectElement).selectedOptions).map((x) => x.value) })}
                 >
-                  ${d.state_tree.map((n) => html`<option value=${n.id} ?selected=${o.when_state?.includes(n.id)}>${n.name}</option>`)}
+                  ${d.state_tree.map((n) => html`<option value=${n.id} ?selected=${o.when_state?.includes(n.id)}>${this.stateName(n)}</option>`)}
                 </select></label
               ><label class="field"
                 >${t.priority}<input
@@ -806,7 +633,7 @@ export class HouseStateCard extends LitElement {
             </button>
           </div>
           <div class="tree-list">
-            ${this.ordered(d.state_tree).map(([n, depth]) => html`<button data-node=${n.id} class=${n.id === this.selected ? "active" : ""} style=${`padding-left:${8 + depth * 18}px`} @click=${() => (this.selected = n.id)}>${n.name}<small>${n.id}</small></button>`)}
+            ${this.ordered(d.state_tree).map(([n, depth]) => html`<button data-node=${n.id} class=${n.id === this.selected ? "active" : ""} style=${`padding-left:${8 + depth * 18}px`} @click=${() => (this.selected = n.id)}>${this.stateName(n)}<small>${n.id}</small></button>`)}
           </div>
         </div>
         ${
@@ -827,7 +654,7 @@ export class HouseStateCard extends LitElement {
                     <option value="" ?selected=${node.parent === null}>
                       —
                     </option>
-                    ${d.state_tree.filter((n) => !blocked.has(n.id)).map((n) => html`<option value=${n.id} ?selected=${node.parent === n.id}>${n.name}</option>`)}
+                    ${d.state_tree.filter((n) => !blocked.has(n.id)).map((n) => html`<option value=${n.id} ?selected=${node.parent === n.id}>${this.stateName(n)}</option>`)}
                   </select></label
                 ><label class="field"
                   >${t.scene}<ha-entity-picker
@@ -844,7 +671,7 @@ export class HouseStateCard extends LitElement {
                     <option value="" ?selected=${node.default_child === null}>
                       —
                     </option>
-                    ${this.branches(node.id, d.state_tree).map((n) => html`<option value=${n.id} ?selected=${node.default_child === n.id}>${n.name}</option>`)}
+                    ${this.branches(node.id, d.state_tree).map((n) => html`<option value=${n.id} ?selected=${node.default_child === n.id}>${this.stateName(n)}</option>`)}
                   </select></label
                 ><label class="field"
                   >${t.occupied}<select
@@ -880,7 +707,7 @@ export class HouseStateCard extends LitElement {
             >${t.initial}<select
               @change=${(e: Event) => (this.draft = { ...d, initial_state: (e.target as HTMLSelectElement).value })}
             >
-              ${d.state_tree.map((n) => html`<option value=${n.id} ?selected=${d.initial_state === n.id}>${n.name}</option>`)}
+              ${d.state_tree.map((n) => html`<option value=${n.id} ?selected=${d.initial_state === n.id}>${this.stateName(n)}</option>`)}
             </select></label
           >${(["arrival", "departure", "vacation", "night"] as const).map(
             (role) =>
@@ -889,7 +716,7 @@ export class HouseStateCard extends LitElement {
                   @change=${(e: Event) => (this.draft = { ...d, roles: { ...d.roles, [role]: (e.target as HTMLSelectElement).value || null } })}
                 >
                   <option value="" ?selected=${!d.roles[role]}>—</option>
-                  ${d.state_tree.filter((n) => (role === "arrival" || role === "night" ? this.isOccupied(n.id, d.state_tree) : !this.isOccupied(n.id, d.state_tree))).map((n) => html`<option value=${n.id} ?selected=${d.roles[role] === n.id}>${n.name}</option>`)}
+                  ${d.state_tree.filter((n) => (role === "arrival" || role === "night" ? this.isOccupied(n.id, d.state_tree) : !this.isOccupied(n.id, d.state_tree))).map((n) => html`<option value=${n.id} ?selected=${d.roles[role] === n.id}>${this.stateName(n)}</option>`)}
                 </select></label
               >`,
           )}
@@ -1026,17 +853,21 @@ export class HouseStateCard extends LitElement {
               );
             }}
           >
-            <option value="off" ?selected=${sch.type === "off"}>Off</option>
-            <option value="fixed" ?selected=${sch.type === "fixed"}>
-              Fixed
+            <option value="off" ?selected=${sch.type === "off"}>
+              ${this.t.off}
             </option>
-            <option value="sun" ?selected=${sch.type === "sun"}>Sun</option>
+            <option value="fixed" ?selected=${sch.type === "fixed"}>
+              ${this.t.fixedTime}
+            </option>
+            <option value="sun" ?selected=${sch.type === "sun"}>
+              ${this.t.solarTime}
+            </option>
           </select></label
         >
         ${
           sch.type === "fixed"
             ? html`<label class="field"
-                >Time<input
+                >${this.t.time}<input
                   type="time"
                   step="1"
                   .value=${sch.time || "22:00:00"}
@@ -1054,24 +885,24 @@ export class HouseStateCard extends LitElement {
           sch.type === "sun"
             ? html`<div class="grid">
                 <label class="field"
-                  >Event<select
+                  >${this.t.event}<select
                     @change=${(e: Event) => this.saveOption("night_schedule", { ...sch, event: (e.target as HTMLSelectElement).value })}
                   >
                     <option
                       value="sunset"
                       ?selected=${(sch.event || "sunset") === "sunset"}
                     >
-                      Sunset
+                      ${this.t.sunset}
                     </option>
                     <option
                       value="sunrise"
                       ?selected=${sch.event === "sunrise"}
                     >
-                      Sunrise
+                      ${this.t.sunrise}
                     </option>
                   </select></label
                 ><label class="field"
-                  >Offset (seconds)<input
+                  >${this.t.offset}<input
                     type="number"
                     .value=${String(sch.offset || 0)}
                     @change=${(e: Event) => this.saveOption("night_schedule", { ...sch, offset: Number((e.target as HTMLInputElement).value) })}
@@ -1083,7 +914,7 @@ export class HouseStateCard extends LitElement {
           ${(["state", "overlay"] as const).map(
             (key) =>
               html`<label class="field"
-                >Legacy ${key}<ha-entity-picker
+                >${this.t.legacy[key]}<ha-entity-picker
                   .hass=${this.hass}
                   .value=${c.legacy_mirror?.[key] || ""}
                   .includeDomains=${["input_select"]}

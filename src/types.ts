@@ -5,6 +5,7 @@ export interface HassEntity {
 }
 export interface HomeAssistant {
   states: Record<string, HassEntity>;
+  language?: string;
   locale?: { language?: string };
   callService(
     domain: string,

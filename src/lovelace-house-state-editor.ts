@@ -1,13 +1,14 @@
 import { LitElement, html, css } from "lit";
 import { customElement, property, state } from "lit/decorators.js";
 import type { CardConfig, HomeAssistant } from "./types";
-const schema = [
+import { localize } from "./localize";
+const schema = (t: ReturnType<typeof localize>) => [
   {
     name: "appearance",
     selector: {
       select: {
         options: [
-          { value: "default", label: "Default" },
+          { value: "default", label: t.defaultAppearance },
           { value: "bubble", label: "Bubble" },
         ],
       },
@@ -49,8 +50,8 @@ export class Editor extends LitElement {
     return html`<ha-form
       .hass=${this.hass}
       .data=${this.config}
-      .schema=${schema}
-      .computeLabel=${(x: { name: string }) => ({ appearance: "Appearance", entity: "House State entity", name: "Name", show_overlay: "Show overlay", confirm_vacation: "Confirm vacation" })[x.name] || x.name}
+      .schema=${schema(localize(this.hass))}
+      .computeLabel=${(x: { name: string }) => ({ appearance: localize(this.hass).appearance, entity: localize(this.hass).entityLabel, name: localize(this.hass).name, show_overlay: localize(this.hass).showOverlay, confirm_vacation: localize(this.hass).confirmVacation })[x.name] || x.name}
       @value-changed=${this.changed}
     ></ha-form>`;
   }

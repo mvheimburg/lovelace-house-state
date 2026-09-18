@@ -16,7 +16,7 @@ Add this repository to HACS as a **Dashboard** repository, install it, and refre
 type: custom:lovelace-house-state-card
 entity: sensor.house_state
 name: Huset
-appearance: bubble       # default or bubble
+appearance: bubble # default or bubble
 show_overlay: true
 confirm_vacation: true
 ```
@@ -35,7 +35,11 @@ The overlay picker on the card then shows **Automatic** alongside the overlay th
 
 Rules require the integration at 0.2.0 or later; against an older hub the picker behaves exactly as before. Half-finished rules — a calendar row with no entity chosen — are saved as no rule rather than being rejected.
 
-The UI follows Home Assistant's English or Norwegian locale. Bubble appearance uses the dashboard's `--bubble-*` variables.
+The card and visual editor follow Home Assistant's UI language (`hass.language`, with `hass.locale.language` as a fallback). Bokmål is supported for `nb`, `nb-NO` and the Norwegian aliases `no`/`nn`; case and underscore variants are accepted. Other languages fall back to English. Changing language updates the card without changing service IDs, configuration keys or saved settings.
+
+Unmodified starter names such as Home/Day/Away and Christmas display as Hjemme/Dag/Borte and Jul in Bokmål. Custom state, overlay and card names stay exactly as entered. Name-editing inputs show the stored name, so saving a draft never writes a display translation back to the integration. Integration-provided error details retain their original wording.
+
+Bubble appearance uses the dashboard's `--bubble-*` variables.
 
 ## Development
 
@@ -47,4 +51,4 @@ npm run typecheck
 npm run build
 ```
 
-Version 0.2.0.
+Version 0.2.1.

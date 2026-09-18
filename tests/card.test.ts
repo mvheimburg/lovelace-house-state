@@ -539,3 +539,202 @@ describe("date-driven overlays", () => {
     expect(saved[2].overlays[0]).not.toHaveProperty("priority");
   });
 });
+
+describe("Bokmål presentation with English configuration", () => {
+  it("uses hass.language before the legacy locale and switches language without changing state IDs", async () => {
+    const { el, callService } = await setup();
+    el.hass = { ...el.hass, language: "nb-NO", locale: { language: "en" } };
+    await el.updateComplete;
+    expect(
+      el.shadowRoot
+        .querySelector('.overlay option[value="none"]')
+        .textContent.trim(),
+    ).toBe("Av");
+    expect(
+      el.shadowRoot.querySelector('[aria-label="Innstillinger"]'),
+    ).not.toBeNull();
+    expect(el.shadowRoot.querySelector(".status").textContent).toContain(
+      "låst opp dør",
+    );
+    expect(
+      el.shadowRoot.querySelector('[data-state="awake"]').textContent,
+    ).toBe("Awake");
+    el.shadowRoot.querySelector('[data-state="awake"]').click();
+    await vi.waitFor(() =>
+      expect(callService).toHaveBeenCalledWith("house_state", "set", {
+        entity_id: "sensor.house_state",
+        state: "awake",
+        reason: "user",
+      }),
+    );
+    el.hass = { ...el.hass, language: "en", locale: { language: "nb" } };
+    await el.updateComplete;
+    expect(
+      el.shadowRoot.querySelector('[aria-label="Settings"]'),
+    ).not.toBeNull();
+  });
+  it.each(["nb", "NB_no", "no-NO", "nn"])(
+    "supports Norwegian aliases from the legacy locale: %s",
+    async (language) => {
+      const { el } = await setup();
+      el.hass = { ...el.hass, locale: { language } };
+      await el.updateComplete;
+      expect(
+        el.shadowRoot.querySelector('[aria-label="Innstillinger"]'),
+      ).not.toBeNull();
+    },
+  );
+  it("falls back to English for unsupported languages", async () => {
+    const { el } = await setup();
+    el.hass = { ...el.hass, language: "de", locale: { language: "nb" } };
+    await el.updateComplete;
+    expect(
+      el.shadowRoot.querySelector('[aria-label="Settings"]'),
+    ).not.toBeNull();
+  });
+  it("localizes schedule settings and keeps the saved sunset token in English", async () => {
+    const { el, callService } = await setup({
+      config: {
+        ...config,
+        night_schedule: { type: "sun", event: "sunset", offset: 0 },
+      },
+    });
+    el.hass = { ...el.hass, language: "nb" };
+    await el.updateComplete;
+    el.shadowRoot.querySelector(".header button").click();
+    await el.updateComplete;
+    const dialog = el.shadowRoot.querySelector("dialog");
+    for (const label of [
+      "Solhendelse",
+      "Solnedgang",
+      "Soloppgang",
+      "Forskyvning (sekunder)",
+      "Eldre tilstandsvelger",
+    ])
+      expect(dialog.textContent).toContain(label);
+    const sunset = dialog.querySelector('option[value="sunset"]');
+    const select = sunset.parentElement;
+    select.value = "sunrise";
+    select.dispatchEvent(new Event("change"));
+    await vi.waitFor(() =>
+      expect(callService).toHaveBeenCalledWith("house_state", "set_config", {
+        entity_id: "sensor.house_state",
+        night_schedule: { type: "sun", event: "sunrise", offset: 0 },
+      }),
+    );
+  });
+  it("localizes the visual editor without rewriting stored YAML", async () => {
+    const editor = document.createElement("lovelace-house-state-editor") as any;
+    editor.hass = { states: {}, language: "nb", callService: vi.fn() };
+    editor.setConfig({
+      type: "custom:lovelace-house-state-card",
+      entity: "sensor.house_state",
+      appearance: "default",
+      name: "Our home",
+    });
+    document.body.append(editor);
+    await editor.updateComplete;
+    const form = editor.shadowRoot.querySelector("ha-form");
+    expect(form.computeLabel({ name: "appearance" })).toBe("Utseende");
+    expect(form.computeLabel({ name: "confirm_vacation" })).toBe(
+      "Bekreft ferie",
+    );
+    expect(form.schema[0].selector.select.options[0]).toEqual({
+      value: "default",
+      label: "Standard",
+    });
+    const changed = vi.fn();
+    editor.addEventListener("config-changed", changed);
+    form.dispatchEvent(
+      new CustomEvent("value-changed", {
+        detail: { value: { appearance: "bubble" } },
+      }),
+    );
+    expect(changed.mock.calls[0][0].detail.config).toMatchObject({
+      entity: "sensor.house_state",
+      appearance: "bubble",
+      name: "Our home",
+    });
+    editor.hass = { ...editor.hass, language: "en" };
+    await editor.updateComplete;
+    expect(form.computeLabel({ name: "appearance" })).toBe("Appearance");
+  });
+});
+it("translates unmodified starter labels but preserves custom names and stored names", async () => {
+  const starter = [
+    {
+      id: "home",
+      name: "Home",
+      parent: null,
+      scene: "",
+      default_child: "day",
+      occupied: true,
+    },
+    {
+      id: "day",
+      name: "Day",
+      parent: "home",
+      scene: "",
+      default_child: null,
+      occupied: null,
+    },
+    {
+      id: "away",
+      name: "Our cabin",
+      parent: null,
+      scene: "",
+      default_child: null,
+      occupied: false,
+    },
+  ];
+  const overlays = [
+    { id: "christmas", name: "Christmas", scene: "" },
+    { id: "party", name: "Friends visiting", scene: "" },
+  ];
+  const { el, callService } = await setup({
+    state: "day",
+    active_path: ["home", "day"],
+    state_tree: starter,
+    overlays,
+    config: {
+      ...config,
+      state_tree: starter,
+      overlays,
+      initial_state: "home",
+      roles: {
+        arrival: "home",
+        departure: "away",
+        vacation: null,
+        night: null,
+      },
+    },
+  });
+  el.hass = { ...el.hass, language: "nb" };
+  await el.updateComplete;
+  expect(el.shadowRoot.querySelector('[data-state="home"]').textContent).toBe(
+    "Hjemme",
+  );
+  expect(el.shadowRoot.querySelector('[data-state="day"]').textContent).toBe(
+    "Dag",
+  );
+  expect(el.shadowRoot.querySelector('[data-state="away"]').textContent).toBe(
+    "Our cabin",
+  );
+  expect(
+    el.shadowRoot.querySelector('.overlay option[value="christmas"]')
+      .textContent,
+  ).toBe("Jul");
+  expect(
+    el.shadowRoot.querySelector('.overlay option[value="party"]').textContent,
+  ).toBe("Friends visiting");
+  el.shadowRoot.querySelector(".header button").click();
+  await el.updateComplete;
+  el.shadowRoot.querySelector('[data-action="save"]').click();
+  await vi.waitFor(() =>
+    expect(callService).toHaveBeenCalledWith(
+      "house_state",
+      "set_config",
+      expect.objectContaining({ state_tree: starter, overlays }),
+    ),
+  );
+});
