@@ -168,112 +168,6 @@ describe("configurable tree card", () => {
       }),
     );
   });
-  it("initializes dynamic selects from configuration", async () => {
-    const { el } = await setup({ overlay: "cozy" });
-    expect(
-      (el.shadowRoot!.querySelector(".overlay") as HTMLSelectElement).value,
-    ).toBe("cozy");
-    el.shadowRoot!.querySelector('[aria-label="Settings"]').click();
-    await el.updateComplete;
-    const values = [
-      ...el.shadowRoot!.querySelectorAll(".section.grid select"),
-    ].map((x: any) => x.value);
-    expect(values).toContain("present");
-    expect(values).toContain("trip");
-  });
-  it("saves the entire structural draft atomically", async () => {
-    const { el, callService } = await setup();
-    el.shadowRoot!.querySelector('[aria-label="Settings"]').click();
-    await el.updateComplete;
-    el.shadowRoot!.querySelector('[data-action="add-root"]').click();
-    await el.updateComplete;
-    const n = el.shadowRoot!.querySelector(
-      '[name="node-name"]',
-    ) as HTMLInputElement;
-    n.value = "Guests";
-    n.dispatchEvent(new Event("input"));
-    el.shadowRoot!.querySelector('[data-action="save"]').click();
-    await vi.waitFor(() =>
-      expect(callService).toHaveBeenCalledWith(
-        "house_state",
-        "set_config",
-        expect.objectContaining({
-          entity_id: "sensor.house_state",
-          state_tree: expect.arrayContaining([
-            expect.objectContaining({ name: "Guests", parent: null }),
-          ]),
-          roles: config.roles,
-          initial_state: "present",
-          overlays: config.overlays,
-        }),
-      ),
-    );
-  });
-  it("removes subtrees and clears role references", async () => {
-    vi.spyOn(window, "confirm").mockReturnValue(true);
-    const { el, callService } = await setup();
-    el.shadowRoot!.querySelector('[aria-label="Settings"]').click();
-    await el.updateComplete;
-    el.shadowRoot!.querySelector('[data-node="trip"]').click();
-    await el.updateComplete;
-    el.shadowRoot!.querySelector('[data-action="remove-node"]').click();
-    await el.updateComplete;
-    el.shadowRoot!.querySelector('[data-action="save"]').click();
-    await vi.waitFor(() =>
-      expect(callService).toHaveBeenCalledWith(
-        "house_state",
-        "set_config",
-        expect.objectContaining({
-          roles: expect.objectContaining({ vacation: null }),
-          state_tree: expect.not.arrayContaining([
-            expect.objectContaining({ id: "trip" }),
-          ]),
-        }),
-      ),
-    );
-  });
-  it("does not remove the last remaining tree through its root", async () => {
-    vi.spyOn(window, "confirm").mockReturnValue(true);
-    const only = [
-      {
-        id: "root",
-        name: "Root",
-        parent: null,
-        scene: "",
-        default_child: "child",
-        occupied: true,
-      },
-      {
-        id: "child",
-        name: "Child",
-        parent: "root",
-        scene: "",
-        default_child: null,
-        occupied: null,
-      },
-    ];
-    const { el } = await setup({
-      state_tree: only,
-      active_path: ["root", "child"],
-      config: { ...config, state_tree: only, initial_state: "root" },
-    });
-    el.shadowRoot!.querySelector('[aria-label="Settings"]').click();
-    await el.updateComplete;
-    el.shadowRoot!.querySelector('[data-node="root"]').click();
-    await el.updateComplete;
-    el.shadowRoot!.querySelector('[data-action="remove-node"]').click();
-    await el.updateComplete;
-    expect(el.shadowRoot!.querySelectorAll("[data-node]")).toHaveLength(2);
-  });
-  it("keeps an invalid draft open when atomic save fails", async () => {
-    const { el, callService } = await setup();
-    callService.mockRejectedValueOnce(new Error("invalid tree"));
-    el.shadowRoot!.querySelector('[aria-label="Settings"]').click();
-    await el.updateComplete;
-    el.shadowRoot!.querySelector('[data-action="save"]').click();
-    await vi.waitFor(() => expect(callService).toHaveBeenCalled());
-    expect(el.shadowRoot!.querySelector("dialog").open).toBe(true);
-  });
   it("surfaces service failures", async () => {
     vi.spyOn(window, "confirm").mockReturnValue(true);
     const { el, callService } = await setup();
@@ -294,65 +188,6 @@ describe("configurable tree card", () => {
     select.dispatchEvent(new Event("change"));
     await vi.waitFor(() => expect(callService).toHaveBeenCalled());
     await vi.waitFor(() => expect(select.value).toBe("none"));
-  });
-  it("preserves an open draft through a temporary unavailable hub reload", async () => {
-    const { el } = await setup();
-    el.shadowRoot!.querySelector('[aria-label="Settings"]').click();
-    await el.updateComplete;
-    const name = el.shadowRoot!.querySelector(
-      '[name="node-name"]',
-    ) as HTMLInputElement;
-    name.value = "Draft name";
-    name.dispatchEvent(new Event("input"));
-    await el.updateComplete;
-    el.hass = {
-      ...el.hass,
-      states: {
-        "sensor.house_state": {
-          entity_id: "sensor.house_state",
-          state: "unavailable",
-          attributes: { friendly_name: "House" },
-        },
-      },
-    };
-    await el.updateComplete;
-    expect(el.shadowRoot!.querySelector("dialog").open).toBe(true);
-    expect(
-      (el.shadowRoot!.querySelector('[name="node-name"]') as HTMLInputElement)
-        .value,
-    ).toBe("Draft name");
-    el.hass = {
-      ...el.hass,
-      states: {
-        "sensor.house_state": {
-          entity_id: "sensor.house_state",
-          state: "reading",
-          attributes: {
-            state: "reading",
-            active_path: ["present", "awake", "quiet", "reading"],
-            state_tree: tree,
-            overlays: config.overlays,
-            overlay: "none",
-            config,
-          },
-        },
-      },
-    };
-    await el.updateComplete;
-    expect(el.shadowRoot!.querySelector("dialog").open).toBe(true);
-    expect(
-      (el.shadowRoot!.querySelector('[name="node-name"]') as HTMLInputElement)
-        .value,
-    ).toBe("Draft name");
-  });
-  it("shows a configured zero-second away grace", async () => {
-    const { el } = await setup({ config: { ...config, auto_away_grace: 0 } });
-    el.shadowRoot!.querySelector('[aria-label="Settings"]').click();
-    await el.updateComplete;
-    const inputs = [
-      ...el.shadowRoot!.querySelectorAll('input[type="number"]'),
-    ] as HTMLInputElement[];
-    expect(inputs.some((input) => input.value === "0")).toBe(true);
   });
 });
 
@@ -425,119 +260,6 @@ describe("date-driven overlays", () => {
       "manual until",
     );
   });
-  it("edits a fixed date rule and saves it", async () => {
-    const { el, callService } = await setup(withRules);
-    el.shadowRoot!.querySelector('[aria-label="Settings"]').click();
-    await el.updateComplete;
-    const from = el.shadowRoot!.querySelector(
-      '[name="rule-from"]',
-    ) as HTMLInputElement;
-    expect(from.value).toBe("12-01");
-    from.value = "11-29";
-    from.dispatchEvent(new Event("input"));
-    await el.updateComplete;
-    el.shadowRoot!.querySelector('[data-action="save"]').click();
-    await vi.waitFor(() =>
-      expect(callService).toHaveBeenCalledWith(
-        "house_state",
-        "set_config",
-        expect.objectContaining({
-          overlays: [
-            expect.objectContaining({
-              id: "cozy",
-              dates: { type: "fixed", from: "11-29", to: "12-26" },
-            }),
-          ],
-        }),
-      ),
-    );
-  });
-  it("switches rule kind and seeds a usable default", async () => {
-    const { el, callService } = await setup();
-    el.shadowRoot!.querySelector('[aria-label="Settings"]').click();
-    await el.updateComplete;
-    const kind = el.shadowRoot!.querySelector(
-      '[name="rule-kind"]',
-    ) as HTMLSelectElement;
-    expect(kind.value).toBe("none");
-    kind.value = "easter";
-    kind.dispatchEvent(new Event("change"));
-    await el.updateComplete;
-    el.shadowRoot!.querySelector('[data-action="save"]').click();
-    await vi.waitFor(() =>
-      expect(callService).toHaveBeenCalledWith(
-        "house_state",
-        "set_config",
-        expect.objectContaining({
-          overlays: [
-            expect.objectContaining({
-              dates: { type: "easter", from: -7, to: 1 },
-            }),
-          ],
-        }),
-      ),
-    );
-  });
-  it("seeds Advent as Sundays before an anchor, not a Sunday of December", async () => {
-    const { el } = await setup();
-    el.shadowRoot!.querySelector('[aria-label="Settings"]').click();
-    await el.updateComplete;
-    const kind = el.shadowRoot!.querySelector(
-      '[name="rule-kind"]',
-    ) as HTMLSelectElement;
-    kind.value = "nth_weekday";
-    kind.dispatchEvent(new Event("change"));
-    await el.updateComplete;
-    expect(
-      (el.shadowRoot!.querySelector('[name="rule-anchor"]') as HTMLInputElement)
-        .value,
-    ).toBe("12-25");
-    expect(
-      (el.shadowRoot!.querySelector('[name="rule-nth"]') as HTMLInputElement)
-        .value,
-    ).toBe("-4");
-  });
-  it("drops an unfinished calendar rule instead of failing validation", async () => {
-    const { el, callService } = await setup();
-    el.shadowRoot!.querySelector('[aria-label="Settings"]').click();
-    await el.updateComplete;
-    const kind = el.shadowRoot!.querySelector(
-      '[name="rule-kind"]',
-    ) as HTMLSelectElement;
-    kind.value = "calendar";
-    kind.dispatchEvent(new Event("change"));
-    await el.updateComplete;
-    el.shadowRoot!.querySelector('[data-action="save"]').click();
-    await vi.waitFor(() => expect(callService).toHaveBeenCalled());
-    const saved = callService.mock.calls.find(
-      (c: any[]) => c[1] === "set_config",
-    )!;
-    expect(saved[2].overlays[0]).toEqual({
-      id: "cozy",
-      name: "Cozy lights",
-      scene: "scene.cozy",
-    });
-  });
-  it("keeps gating fields only when they say something", async () => {
-    const { el, callService } = await setup(withRules);
-    el.shadowRoot!.querySelector('[aria-label="Settings"]').click();
-    await el.updateComplete;
-    const when = el.shadowRoot!.querySelector(
-      '[name="rule-when-occupied"]',
-    ) as HTMLSelectElement;
-    expect(when.value).toBe("");
-    when.value = "true";
-    when.dispatchEvent(new Event("change"));
-    await el.updateComplete;
-    el.shadowRoot!.querySelector('[data-action="save"]').click();
-    await vi.waitFor(() => expect(callService).toHaveBeenCalled());
-    const saved = callService.mock.calls.find(
-      (c: any[]) => c[1] === "set_config",
-    )!;
-    expect(saved[2].overlays[0].when_occupied).toBe(true);
-    expect(saved[2].overlays[0]).not.toHaveProperty("when_state");
-    expect(saved[2].overlays[0]).not.toHaveProperty("priority");
-  });
 });
 
 describe("Bokmål presentation with English configuration", () => {
@@ -591,37 +313,6 @@ describe("Bokmål presentation with English configuration", () => {
     expect(
       el.shadowRoot.querySelector('[aria-label="Settings"]'),
     ).not.toBeNull();
-  });
-  it("localizes schedule settings and keeps the saved sunset token in English", async () => {
-    const { el, callService } = await setup({
-      config: {
-        ...config,
-        night_schedule: { type: "sun", event: "sunset", offset: 0 },
-      },
-    });
-    el.hass = { ...el.hass, language: "nb" };
-    await el.updateComplete;
-    el.shadowRoot.querySelector(".header button").click();
-    await el.updateComplete;
-    const dialog = el.shadowRoot.querySelector("dialog");
-    for (const label of [
-      "Solhendelse",
-      "Solnedgang",
-      "Soloppgang",
-      "Forskyvning (sekunder)",
-      "Eldre tilstandsvelger",
-    ])
-      expect(dialog.textContent).toContain(label);
-    const sunset = dialog.querySelector('option[value="sunset"]');
-    const select = sunset.parentElement;
-    select.value = "sunrise";
-    select.dispatchEvent(new Event("change"));
-    await vi.waitFor(() =>
-      expect(callService).toHaveBeenCalledWith("house_state", "set_config", {
-        entity_id: "sensor.house_state",
-        night_schedule: { type: "sun", event: "sunrise", offset: 0 },
-      }),
-    );
   });
   it("localizes the visual editor without rewriting stored YAML", async () => {
     const editor = document.createElement("lovelace-house-state-editor") as any;
@@ -727,14 +418,147 @@ it("translates unmodified starter labels but preserves custom names and stored n
   expect(
     el.shadowRoot.querySelector('.overlay option[value="party"]').textContent,
   ).toBe("Friends visiting");
-  el.shadowRoot.querySelector(".header button").click();
-  await el.updateComplete;
-  el.shadowRoot.querySelector('[data-action="save"]').click();
+  el.shadowRoot.querySelector('[data-state="day"]').click();
   await vi.waitFor(() =>
-    expect(callService).toHaveBeenCalledWith(
-      "house_state",
-      "set_config",
-      expect.objectContaining({ state_tree: starter, overlays }),
-    ),
+    expect(callService).toHaveBeenCalledWith("house_state", "set", {
+      entity_id: "sensor.house_state",
+      state: "day",
+      reason: "user",
+    }),
+  );
+  expect(el.hass.states["sensor.house_state"].attributes.state_tree).toEqual(
+    starter,
+  );
+});
+
+describe("everyday controls and central configuration", () => {
+  it("links settings to the integration and exposes no structural or automation editor", async () => {
+    const { el, callService } = await setup();
+    const link = el.shadowRoot.querySelector('a[aria-label="Settings"]');
+    expect(link?.getAttribute("href")).toBe(
+      "/config/integrations/integration/house_state",
+    );
+    expect(el.shadowRoot.querySelector("dialog")).toBeNull();
+    expect(el.shadowRoot.querySelector('[data-action="save"]')).toBeNull();
+    expect(el.shadowRoot.querySelector("ha-entity-picker")).toBeNull();
+    el.shadowRoot.querySelector('[data-action="apply"]').click();
+    await vi.waitFor(() =>
+      expect(callService).toHaveBeenCalledWith("house_state", "apply_scene", {
+        entity_id: "sensor.house_state",
+        force: true,
+      }),
+    );
+    expect(
+      callService.mock.calls.every(
+        (call: unknown[]) => call[1] !== "set_config",
+      ),
+    ).toBe(true);
+  });
+  it("keeps the settings link usable with no sensor and no previous snapshot", async () => {
+    const { el } = await setup();
+    const fresh = document.createElement("lovelace-house-state-card");
+    fresh.setConfig({
+      type: "custom:lovelace-house-state-card",
+      entity: "sensor.missing",
+    });
+    fresh.hass = { ...el.hass, language: "nb", states: {} };
+    document.body.append(fresh);
+    await fresh.updateComplete;
+    expect(
+      fresh
+        .shadowRoot!.querySelector('a[aria-label="Innstillinger"]')
+        ?.getAttribute("href"),
+    ).toBe("/config/integrations/integration/house_state");
+    expect(fresh.shadowRoot!.textContent).toContain("Fant ikke entiteten");
+    expect(fresh.shadowRoot!.querySelector("[data-state]")).toBeNull();
+  });
+  it("retains disabled controls across reload and adopts the refreshed configuration", async () => {
+    const { el, callService } = await setup({ overlay: "cozy" });
+    const previous = el.hass.states["sensor.house_state"];
+    el.hass = {
+      ...el.hass,
+      states: {
+        "sensor.house_state": {
+          ...previous,
+          state: "unavailable",
+          attributes: {},
+        },
+      },
+    };
+    await el.updateComplete;
+    expect(el.shadowRoot.querySelectorAll("[data-state]")).toHaveLength(5);
+    expect(el.shadowRoot.querySelector(".overlay").value).toBe("cozy");
+    for (const control of el.shadowRoot.querySelectorAll("button, select"))
+      expect(control.disabled).toBe(true);
+    expect(el.shadowRoot.querySelector("a.icon").getAttribute("href")).toBe(
+      "/config/integrations/integration/house_state",
+    );
+    el.shadowRoot.querySelector('[data-action="apply"]').click();
+    expect(callService).not.toHaveBeenCalled();
+    const revised = tree.map((node) =>
+      node.id === "reading" ? { ...node, name: "Books" } : node,
+    );
+    el.hass = {
+      ...el.hass,
+      states: {
+        "sensor.house_state": {
+          ...previous,
+          attributes: { ...previous.attributes, state_tree: revised },
+        },
+      },
+    };
+    await el.updateComplete;
+    expect(
+      el.shadowRoot.querySelector('[data-state="reading"]').textContent,
+    ).toBe("Books");
+    expect(el.shadowRoot.querySelector('[data-action="apply"]').disabled).toBe(
+      false,
+    );
+  });
+  it("disables state, overlay and apply actions until the pending request completes", async () => {
+    const { el, callService } = await setup();
+    let resolve!: () => void;
+    callService.mockImplementationOnce(
+      () =>
+        new Promise<void>((done) => {
+          resolve = done;
+        }),
+    );
+    el.hass = { ...el.hass, language: "nb" };
+    await el.updateComplete;
+    const apply = el.shadowRoot.querySelector('[data-action="apply"]');
+    expect(apply.textContent).toContain("Bruk scene nå");
+    apply.click();
+    await el.updateComplete;
+    for (const control of el.shadowRoot.querySelectorAll("button, select"))
+      expect(control.disabled).toBe(true);
+    expect(el.shadowRoot.querySelector("a.icon")).not.toBeNull();
+    resolve();
+    await vi.waitFor(() => expect(apply.disabled).toBe(false));
+    expect(callService).toHaveBeenCalledTimes(1);
+  });
+  it("never retains a snapshot from a different configured entity", async () => {
+    const { el } = await setup();
+    el.setConfig({
+      type: "custom:lovelace-house-state-card",
+      entity: "sensor.other",
+    });
+    await el.updateComplete;
+    expect(el.shadowRoot.querySelector("[data-state]")).toBeNull();
+    expect(el.shadowRoot.textContent).toContain("sensor.other");
+  });
+});
+it("preserves regional clock formatting independently of dictionary fallback", async () => {
+  const held = "2026-12-10T23:05:00Z";
+  const { el } = await setup({ overlay_hold_until: held });
+  el.hass = { ...el.hass, language: "en_GB", locale: { language: "nb" } };
+  await el.updateComplete;
+  expect(el.shadowRoot.querySelector(".status").textContent).toContain(
+    `manual until ${new Date(held).toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" })}`,
+  );
+  el.hass = { ...el.hass, language: "bad_language_tag" };
+  await el.updateComplete;
+  expect(el.shadowRoot.querySelector(".status").textContent).toContain(
+    "manual until",
   );
 });

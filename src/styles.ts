@@ -21,10 +21,7 @@ export const styles = css`
     );
     box-shadow: var(--bubble-box-shadow, var(--ha-card-box-shadow));
   }
-  .header,
-  .row,
-  .dialog-head,
-  .dialog-actions {
+  .header {
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -35,6 +32,9 @@ export const styles = css`
     font-weight: 600;
   }
   .icon {
+    display: inline-flex;
+    border-radius: 50%;
+    text-decoration: none;
     border: 0;
     background: none;
     color: inherit;
@@ -50,8 +50,7 @@ export const styles = css`
     border-radius: 14px;
     margin-top: 14px;
   }
-  .segment button,
-  .chips button {
+  .segment button {
     border: 0;
     border-radius: 10px;
     padding: 10px;
@@ -64,19 +63,14 @@ export const styles = css`
     min-width: 0;
     overflow-wrap: anywhere;
   }
-  .segment button.active,
-  .chips button.active {
+  .segment button.active {
     background: var(--primary-color);
     color: var(--text-primary-color, #fff);
   }
-  button:disabled {
+  button:disabled,
+  select:disabled {
     opacity: 0.4;
     cursor: not-allowed;
-  }
-  .chips {
-    display: flex;
-    gap: 6px;
-    margin-top: 10px;
   }
   .overlay {
     width: 100%;
@@ -100,97 +94,19 @@ export const styles = css`
     gap: 8px;
     color: var(--error-color);
   }
-  dialog {
-    color: var(--primary-text-color);
-    background: var(--card-background-color);
-    border: 0;
-    border-radius: 18px;
-    padding: 0;
-    width: min(680px, calc(100vw - 24px));
-    max-height: 90vh;
-    box-shadow: 0 12px 40px #0008;
-  }
-  dialog::backdrop {
-    background: #0008;
-  }
-  .dialog-head {
-    position: sticky;
-    top: 0;
-    background: inherit;
-    padding: 16px 20px;
-    border-bottom: 1px solid var(--divider-color);
-  }
-  h2,
-  h3 {
-    margin: 0;
-  }
-  .settings {
-    padding: 16px 20px;
-    overflow: auto;
-  }
-  .section {
-    margin-bottom: 20px;
-  }
-  .tree-list {
-    display: flex;
-    flex-direction: column;
-    gap: 3px;
-    margin-top: 8px;
-  }
-  .tree-list button {
-    display: flex;
-    justify-content: space-between;
-    border: 0;
-    padding-block: 8px;
-    background: transparent;
-    color: inherit;
-    text-align: left;
-    border-radius: 8px;
-  }
-  .tree-list button.active {
-    background: var(--secondary-background-color);
-  }
-  .tree-list small {
-    color: var(--secondary-text-color);
-  }
-  .grid {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 9px;
-  }
-  .field {
-    display: flex;
-    flex-direction: column;
-    gap: 5px;
-    font-size: 13px;
-  }
-  .field input,
-  .field select {
-    padding: 9px;
-    border: 1px solid var(--divider-color);
-    border-radius: 8px;
-    background: var(--secondary-background-color);
-    color: inherit;
-  }
-  .toggle {
-    display: flex;
-    justify-content: space-between;
-    padding: 9px 0;
-  }
-  .dialog-actions {
-    padding: 14px 20px;
-    border-top: 1px solid var(--divider-color);
-  }
-  .primary {
+  .apply {
+    margin-top: 12px;
     padding: 10px 14px;
     border: 0;
     border-radius: 10px;
-    background: var(--primary-color);
-    color: #fff;
+    background: var(--secondary-background-color);
+    color: var(--primary-color);
+    cursor: pointer;
   }
-  @media (max-width: 500px) {
-    .grid {
-      grid-template-columns: 1fr;
-    }
+  button:focus-visible,
+  a:focus-visible,
+  select:focus-visible {
+    outline: 2px solid var(--primary-color);
+    outline-offset: 2px;
   }
 `;

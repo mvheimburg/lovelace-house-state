@@ -94,10 +94,7 @@ const styles = i$3 `
     );
     box-shadow: var(--bubble-box-shadow, var(--ha-card-box-shadow));
   }
-  .header,
-  .row,
-  .dialog-head,
-  .dialog-actions {
+  .header {
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -108,6 +105,9 @@ const styles = i$3 `
     font-weight: 600;
   }
   .icon {
+    display: inline-flex;
+    border-radius: 50%;
+    text-decoration: none;
     border: 0;
     background: none;
     color: inherit;
@@ -123,8 +123,7 @@ const styles = i$3 `
     border-radius: 14px;
     margin-top: 14px;
   }
-  .segment button,
-  .chips button {
+  .segment button {
     border: 0;
     border-radius: 10px;
     padding: 10px;
@@ -137,19 +136,14 @@ const styles = i$3 `
     min-width: 0;
     overflow-wrap: anywhere;
   }
-  .segment button.active,
-  .chips button.active {
+  .segment button.active {
     background: var(--primary-color);
     color: var(--text-primary-color, #fff);
   }
-  button:disabled {
+  button:disabled,
+  select:disabled {
     opacity: 0.4;
     cursor: not-allowed;
-  }
-  .chips {
-    display: flex;
-    gap: 6px;
-    margin-top: 10px;
   }
   .overlay {
     width: 100%;
@@ -173,181 +167,33 @@ const styles = i$3 `
     gap: 8px;
     color: var(--error-color);
   }
-  dialog {
-    color: var(--primary-text-color);
-    background: var(--card-background-color);
-    border: 0;
-    border-radius: 18px;
-    padding: 0;
-    width: min(680px, calc(100vw - 24px));
-    max-height: 90vh;
-    box-shadow: 0 12px 40px #0008;
-  }
-  dialog::backdrop {
-    background: #0008;
-  }
-  .dialog-head {
-    position: sticky;
-    top: 0;
-    background: inherit;
-    padding: 16px 20px;
-    border-bottom: 1px solid var(--divider-color);
-  }
-  h2,
-  h3 {
-    margin: 0;
-  }
-  .settings {
-    padding: 16px 20px;
-    overflow: auto;
-  }
-  .section {
-    margin-bottom: 20px;
-  }
-  .tree-list {
-    display: flex;
-    flex-direction: column;
-    gap: 3px;
-    margin-top: 8px;
-  }
-  .tree-list button {
-    display: flex;
-    justify-content: space-between;
-    border: 0;
-    padding-block: 8px;
-    background: transparent;
-    color: inherit;
-    text-align: left;
-    border-radius: 8px;
-  }
-  .tree-list button.active {
-    background: var(--secondary-background-color);
-  }
-  .tree-list small {
-    color: var(--secondary-text-color);
-  }
-  .grid {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 9px;
-  }
-  .field {
-    display: flex;
-    flex-direction: column;
-    gap: 5px;
-    font-size: 13px;
-  }
-  .field input,
-  .field select {
-    padding: 9px;
-    border: 1px solid var(--divider-color);
-    border-radius: 8px;
-    background: var(--secondary-background-color);
-    color: inherit;
-  }
-  .toggle {
-    display: flex;
-    justify-content: space-between;
-    padding: 9px 0;
-  }
-  .dialog-actions {
-    padding: 14px 20px;
-    border-top: 1px solid var(--divider-color);
-  }
-  .primary {
+  .apply {
+    margin-top: 12px;
     padding: 10px 14px;
     border: 0;
     border-radius: 10px;
-    background: var(--primary-color);
-    color: #fff;
+    background: var(--secondary-background-color);
+    color: var(--primary-color);
+    cursor: pointer;
   }
-  @media (max-width: 500px) {
-    .grid {
-      grid-template-columns: 1fr;
-    }
+  button:focus-visible,
+  a:focus-visible,
+  select:focus-visible {
+    outline: 2px solid var(--primary-color);
+    outline-offset: 2px;
   }
 `;
 
 const en = {
     settings: "Settings",
-    close: "Close",
     off: "Off",
     apply: "Apply scene now",
-    save: "Save",
-    cancel: "Cancel",
-    tree: "State tree",
-    addRoot: "Add root",
-    addChild: "Add child",
-    remove: "Remove subtree",
     name: "Name",
-    id: "ID",
-    parent: "Parent",
-    scene: "Scene",
-    defaultChild: "Default child",
-    occupied: "Is someone home?",
-    inherit: "Inherit",
-    yes: "Yes",
-    no: "No",
-    initial: "Initial state",
-    roles: "Automation roles",
     overlays: "Overlays",
-    addOverlay: "Add overlay",
-    entities: "Entities",
-    automation: "Automation",
     vacationConfirm: "Switch to vacation?",
-    arrival: "Arrival",
-    departure: "Departure",
-    vacation: "Vacation",
-    night: "Night",
-    door: "Doors",
-    gate: "Gates",
-    person: "People",
-    autoReturn: "Automatic return",
-    autoAway: "Automatic away",
-    grace: "Away grace (seconds)",
-    schedule: "Night schedule",
     missing: "Entity not found",
-    newState: "New state",
-    newOverlay: "New overlay",
     automatic: "Automatic",
     heldUntil: "manual until",
-    rule: "Activation",
-    rules: {
-        none: "Manual only",
-        calendar: "Calendar",
-        fixed: "Fixed dates",
-        easter: "Easter",
-        nth_weekday: "Weekday",
-    },
-    calendar: "Calendar",
-    match: "Summary matches",
-    from: "From (MM-DD)",
-    to: "To (MM-DD)",
-    fromDays: "From (days)",
-    toDays: "To (days)",
-    weekday: "Weekday",
-    weekdays: {
-        mon: "Monday",
-        tue: "Tuesday",
-        wed: "Wednesday",
-        thu: "Thursday",
-        fri: "Friday",
-        sat: "Saturday",
-        sun: "Sunday",
-    },
-    nth: "Which one",
-    basis: "Counted from",
-    anchorBasis: "A date",
-    monthBasis: "A month",
-    anchor: "Anchor (MM-DD)",
-    month: "Month",
-    days: "Length (days)",
-    whenOccupied: "Only when",
-    always: "Always",
-    someoneHome: "Someone home",
-    nobodyHome: "Nobody home",
-    whenState: "Only in states",
-    priority: "Priority",
     reason: {
         user: "changed manually",
         door: "door unlocked",
@@ -362,17 +208,8 @@ const en = {
     entityLabel: "House State entity",
     showOverlay: "Show overlay",
     confirmVacation: "Confirm vacation",
-    fixedTime: "Fixed",
-    solarTime: "Sun",
-    time: "Time",
-    event: "Event",
-    sunset: "Sunset",
-    sunrise: "Sunrise",
-    offset: "Offset (seconds)",
-    legacy: { state: "Legacy state", overlay: "Legacy overlay" },
     errorPrefix: "Could not update house state",
     entityRequired: "You must define an entity",
-    matchPlaceholder: "^Christmas",
     durationDay: "d",
     durationHour: "h",
     durationMinute: "min",
@@ -394,84 +231,14 @@ const en = {
 };
 const nb = {
     settings: "Innstillinger",
-    close: "Lukk",
     off: "Av",
     apply: "Bruk scene nå",
-    save: "Lagre",
-    cancel: "Avbryt",
-    tree: "Tilstandstre",
-    addRoot: "Legg til rot",
-    addChild: "Legg til barn",
-    remove: "Fjern gren",
     name: "Navn",
-    id: "ID",
-    parent: "Forelder",
-    scene: "Scene",
-    defaultChild: "Standardbarn",
-    occupied: "Er noen hjemme?",
-    inherit: "Arv",
-    yes: "Ja",
-    no: "Nei",
-    initial: "Starttilstand",
-    roles: "Automatikkroller",
     overlays: "Overlegg",
-    addOverlay: "Legg til overlegg",
-    entities: "Entiteter",
-    automation: "Automatikk",
     vacationConfirm: "Bytt til ferie?",
-    arrival: "Hjemkomst",
-    departure: "Avreise",
-    vacation: "Ferie",
-    night: "Natt",
-    door: "Dører",
-    gate: "Porter",
-    person: "Personer",
-    autoReturn: "Automatisk hjemkomst",
-    autoAway: "Automatisk borte",
-    grace: "Ventetid borte (sekunder)",
-    schedule: "Nattplan",
     missing: "Fant ikke entiteten",
-    newState: "Ny tilstand",
-    newOverlay: "Nytt overlegg",
     automatic: "Automatisk",
     heldUntil: "manuelt til",
-    rule: "Aktivering",
-    rules: {
-        none: "Kun manuelt",
-        calendar: "Kalender",
-        fixed: "Faste datoer",
-        easter: "Påske",
-        nth_weekday: "Ukedag",
-    },
-    calendar: "Kalender",
-    match: "Tittel matcher",
-    from: "Fra (MM-DD)",
-    to: "Til (MM-DD)",
-    fromDays: "Fra (dager)",
-    toDays: "Til (dager)",
-    weekday: "Ukedag",
-    weekdays: {
-        mon: "Mandag",
-        tue: "Tirsdag",
-        wed: "Onsdag",
-        thu: "Torsdag",
-        fri: "Fredag",
-        sat: "Lørdag",
-        sun: "Søndag",
-    },
-    nth: "Hvilken",
-    basis: "Telles fra",
-    anchorBasis: "En dato",
-    monthBasis: "En måned",
-    anchor: "Anker (MM-DD)",
-    month: "Måned",
-    days: "Lengde (dager)",
-    whenOccupied: "Bare når",
-    always: "Alltid",
-    someoneHome: "Noen hjemme",
-    nobodyHome: "Ingen hjemme",
-    whenState: "Bare i tilstander",
-    priority: "Prioritet",
     reason: {
         user: "endret manuelt",
         door: "låst opp dør",
@@ -486,17 +253,8 @@ const nb = {
     entityLabel: "Hustilstandsentitet",
     showOverlay: "Vis overlegg",
     confirmVacation: "Bekreft ferie",
-    fixedTime: "Fast tidspunkt",
-    solarTime: "Solhendelse",
-    time: "Klokkeslett",
-    event: "Hendelse",
-    sunset: "Solnedgang",
-    sunrise: "Soloppgang",
-    offset: "Forskyvning (sekunder)",
-    legacy: { state: "Eldre tilstandsvelger", overlay: "Eldre overleggsvelger" },
     errorPrefix: "Kunne ikke oppdatere hustilstanden",
     entityRequired: "Du må angi en entitet",
-    matchPlaceholder: "^jul",
     durationDay: "d",
     durationHour: "t",
     durationMinute: "min",
@@ -518,6 +276,19 @@ function language(hass) {
         .toLowerCase()
         .replace(/_/g, "-");
     return /^(nb|no|nn)(-|$)/.test(value) ? "nb" : "en";
+}
+/** Keep regional clock conventions separate from the available translations. */
+function formattingLocale(hass) {
+    const requested = (hass?.language || hass?.locale?.language || "en")
+        .toLowerCase()
+        .replace(/_/g, "-")
+        .replace(/^(no|nn)(-|$)/, "nb$2");
+    try {
+        return Intl.getCanonicalLocales(requested)[0] || "en";
+    }
+    catch {
+        return "en";
+    }
 }
 function localize(hass) {
     return language(hass) === "nb" ? nb : en;
@@ -595,7 +366,6 @@ Editor = __decorate([
     t("lovelace-house-state-editor")
 ], Editor);
 
-const copy = (value) => JSON.parse(JSON.stringify(value));
 let HouseStateCard = class HouseStateCard extends i {
     constructor() {
         super(...arguments);
@@ -604,6 +374,8 @@ let HouseStateCard = class HouseStateCard extends i {
     setConfig(config) {
         if (!config.entity)
             throw new Error(this.t.entityRequired);
+        if (this.config?.entity !== config.entity)
+            this.lastValid = undefined;
         this.config = {
             appearance: "default",
             show_overlay: true,
@@ -617,7 +389,7 @@ let HouseStateCard = class HouseStateCard extends i {
     }
     updated() {
         const select = this.renderRoot.querySelector("select.overlay");
-        const entity = this.hass?.states?.[this.config?.entity];
+        const entity = this.lastValid;
         // overlay_choice is what is selected on the axis; overlay is what is in force.
         if (select && entity && !this.busy)
             select.value =
@@ -650,6 +422,8 @@ let HouseStateCard = class HouseStateCard extends i {
         }));
     }
     async call(service, data = {}) {
+        if (this.busy)
+            return false;
         this.busy = true;
         try {
             await this.hass.callService("house_state", service, {
@@ -703,7 +477,7 @@ let HouseStateCard = class HouseStateCard extends i {
         const at = new Date(String(value));
         if (Number.isNaN(at.getTime()))
             return "";
-        const clock = at.toLocaleTimeString(language(this.hass), {
+        const clock = at.toLocaleTimeString(formattingLocale(this.hass), {
             hour: "2-digit",
             minute: "2-digit",
         });
@@ -722,153 +496,15 @@ let HouseStateCard = class HouseStateCard extends i {
     branches(parent, nodes) {
         return nodes.filter((n) => n.parent === parent);
     }
-    open(cfg) {
-        this.draft = copy(cfg);
-        this.selected = cfg.initial_state;
-        this.renderRoot.querySelector("dialog")?.showModal();
-    }
-    close() {
-        this.draft = undefined;
-        this.renderRoot.querySelector("dialog")?.close();
-    }
-    patchNode(values) {
-        if (!this.draft || !this.selected)
-            return;
-        const state_tree = this.draft.state_tree.map((n) => n.id === this.selected ? { ...n, ...values } : n);
-        this.draft = {
-            ...this.draft,
-            state_tree,
-            roles: this.validRoles(this.draft.roles, state_tree),
-        };
-    }
-    reparent(parent) {
-        if (!this.draft || !this.selected)
-            return;
-        const selected = this.selected;
-        const state_tree = this.draft.state_tree.map((n) => n.id === selected
-            ? { ...n, parent }
-            : n.default_child === selected
-                ? { ...n, default_child: null }
-                : n);
-        this.draft = {
-            ...this.draft,
-            state_tree,
-            roles: this.validRoles(this.draft.roles, state_tree),
-        };
-    }
-    isOccupied(id, nodes) {
-        let resolved = nodes.find((n) => n.id === id);
-        const seen = new Set();
-        while (resolved?.default_child && !seen.has(resolved.id)) {
-            seen.add(resolved.id);
-            resolved = nodes.find((n) => n.id === resolved.default_child);
-        }
-        let node = resolved;
-        while (node) {
-            if (node.occupied !== null)
-                return node.occupied;
-            node = node.parent ? nodes.find((n) => n.id === node.parent) : undefined;
-        }
-        return false;
-    }
-    validRoles(roles, nodes) {
-        return Object.fromEntries(Object.entries(roles).map(([role, id]) => {
-            if (!id)
-                return [role, null];
-            const occupied = role === "arrival" || role === "night";
-            return [role, this.isOccupied(id, nodes) === occupied ? id : null];
-        }));
-    }
-    newId(base, nodes) {
-        const slug = base
-            .toLowerCase()
-            .replace(/[^a-z0-9]+/g, "_")
-            .replace(/^([^a-z])/, "s_$1")
-            .slice(0, 55) || "state";
-        let id = slug, i = 2;
-        while (nodes.some((n) => n.id === id))
-            id = `${slug}_${i++}`;
-        return id;
-    }
-    addNode(parent) {
-        if (!this.draft)
-            return;
-        const id = this.newId(parent ? "new_state" : "new_root", this.draft.state_tree);
-        this.draft = {
-            ...this.draft,
-            state_tree: [
-                ...this.draft.state_tree,
-                {
-                    id,
-                    name: this.t.newState,
-                    parent,
-                    scene: "",
-                    default_child: null,
-                    occupied: null,
-                },
-            ],
-        };
-        this.selected = id;
-    }
-    removeNode() {
-        if (!this.draft || !this.selected)
-            return;
-        const removed = this.descendants(this.selected, this.draft.state_tree);
-        if (removed.size === this.draft.state_tree.length ||
-            !window.confirm(this.t.remove + "?"))
-            return;
-        const state_tree = this.draft.state_tree
-            .filter((n) => !removed.has(n.id))
-            .map((n) => removed.has(n.default_child || "") ? { ...n, default_child: null } : n);
-        const initial_state = removed.has(this.draft.initial_state)
-            ? state_tree[0].id
-            : this.draft.initial_state;
-        const roles = Object.fromEntries(Object.entries(this.draft.roles).map(([k, v]) => [
-            k,
-            v && removed.has(v) ? null : v,
-        ]));
-        this.draft = {
-            ...this.draft,
-            state_tree,
-            initial_state,
-            roles: this.validRoles(roles, state_tree),
-        };
-        this.selected = initial_state;
-    }
-    /** Drop half-finished rule fields; the integration rejects empty ones. */
-    cleanOverlays(overlays) {
-        return overlays.map((overlay) => {
-            const out = { ...overlay };
-            if (!out.calendar)
-                delete out.calendar;
-            if (!out.match || !out.calendar)
-                delete out.match;
-            if (out.calendar || !out.dates)
-                delete out.dates;
-            if (typeof out.when_occupied !== "boolean")
-                delete out.when_occupied;
-            if (!out.when_state?.length)
-                delete out.when_state;
-            if (!out.priority)
-                delete out.priority;
-            return out;
-        });
-    }
-    async saveDraft() {
-        if (!this.draft)
-            return;
-        const savedDraft = this.draft;
-        const saved = await this.call("set_config", {
-            state_tree: savedDraft.state_tree,
-            roles: savedDraft.roles,
-            initial_state: savedDraft.initial_state,
-            overlays: this.cleanOverlays(savedDraft.overlays),
-        });
-        if (saved && this.draft === savedDraft)
-            this.close();
-    }
-    saveOption(key, value) {
-        void this.call("set_config", { [key]: value });
+    settingsLink() {
+        return b `<a
+      class="icon"
+      href="/config/integrations/integration/house_state"
+      aria-label=${this.t.settings}
+      title=${this.t.settings}
+    >
+      <ha-icon icon="mdi:cog-outline"></ha-icon>
+    </a>`;
     }
     render() {
         const liveEntity = this.hass?.states?.[this.config?.entity];
@@ -876,6 +512,7 @@ let HouseStateCard = class HouseStateCard extends i {
             liveEntity?.attributes?.config?.state_tree;
         const available = Boolean(liveEntity &&
             liveEntity.state !== "unavailable" &&
+            liveEntity.state !== "unknown" &&
             Array.isArray(liveNodes) &&
             liveNodes.length);
         if (available)
@@ -883,7 +520,11 @@ let HouseStateCard = class HouseStateCard extends i {
         const entity = available ? liveEntity : this.lastValid;
         if (!entity)
             return b `<ha-card
-        ><div class="error">
+        ><div class="header">
+          <div class="title">${this.config?.name || this.t.title}</div>
+          ${this.settingsLink()}
+        </div>
+        <div class="error">
           ${this.t.missing}: ${this.config?.entity || ""}
         </div></ha-card
       >`;
@@ -897,7 +538,11 @@ let HouseStateCard = class HouseStateCard extends i {
         const nodes = a.state_tree || cfg.state_tree || [];
         if (!nodes.length)
             return b `<ha-card
-        ><div class="error">
+        ><div class="header">
+          <div class="title">${this.config?.name || this.t.title}</div>
+          ${this.settingsLink()}
+        </div>
+        <div class="error">
           ${this.t.missing}: ${this.config.entity} (${entity.state})
         </div></ha-card
       >`;
@@ -912,546 +557,49 @@ let HouseStateCard = class HouseStateCard extends i {
         ].filter((x) => x.length);
         const byId = new Map(nodes.map((n) => [n.id, n]));
         return b ` <ha-card
-        ><div class="header">
-          <div class="title">
-            ${this.config.name || a.friendly_name || this.t.title}
-          </div>
-          <button
-            class="icon"
-            aria-label=${this.t.settings}
-            ?disabled=${!available}
-            @click=${() => this.open(cfg)}
-          >
-            <ha-icon icon="mdi:cog-outline"></ha-icon>
-          </button>
+      ><div class="header">
+        <div class="title">
+          ${this.config.name || a.friendly_name || this.t.title}
         </div>
-        ${levels.map((group) => b `<div class="segment">${group.map((n) => b `<button data-state=${n.id} class=${path.includes(n.id) ? "active" : ""} ?disabled=${this.busy || !available} @click=${() => this.selectState(n.id, nodes, cfg.roles)}>${this.stateName(n)}</button>`)}</div>`)}
-        ${this.config.show_overlay
+        ${this.settingsLink()}
+      </div>
+      ${levels.map((group) => b `<div class="segment">${group.map((n) => b `<button data-state=${n.id} class=${path.includes(n.id) ? "active" : ""} ?disabled=${this.busy || !available} @click=${() => this.selectState(n.id, nodes, cfg.roles)}>${this.stateName(n)}</button>`)}</div>`)}
+      ${this.config.show_overlay
             ? b `<select
-                class="overlay"
-                aria-label=${this.t.overlays}
-                ?disabled=${!available}
-                @change=${(e) => this.call("set", { overlay: e.target.value, reason: "user" })}
-              >
-                ${overlays.some((o) => o.calendar || o.dates)
+              class="overlay"
+              aria-label=${this.t.overlays}
+              ?disabled=${this.busy || !available}
+              @change=${(e) => this.call("set", { overlay: e.target.value, reason: "user" })}
+            >
+              ${overlays.some((o) => o.calendar || o.dates)
                 ? b `<option value="auto" ?selected=${choice === "auto"}>
-                        ${this.t.automatic}${ruleName ? ` · ${ruleName}` : ""}
-                      </option>`
+                      ${this.t.automatic}${ruleName ? ` · ${ruleName}` : ""}
+                    </option>`
                 : A}
-                <option value="none" ?selected=${choice === "none"}>
-                  ${this.t.off}
-                </option>
-                ${overlays.map((o) => b `<option value=${o.id} ?selected=${choice === o.id}>${this.overlayName(o)}</option>`)}
-              </select>`
+              <option value="none" ?selected=${choice === "none"}>
+                ${this.t.off}
+              </option>
+              ${overlays.map((o) => b `<option value=${o.id} ?selected=${choice === o.id}>${this.overlayName(o)}</option>`)}
+            </select>`
             : A}
-        <div
-          class="status"
-          title=${path.map((id) => this.stateName(byId.get(id)) || id).join(" › ")}
-        >
-          ${this.stateName(byId.get(path[path.length - 1] || "")) || entity.state}
-          · ${this.duration(a.since)} ·
-          ${this.t.reason[a.last_changed_by] || a.last_changed_by || ""}${this.held(a.overlay_hold_until)}
-        </div></ha-card
-      >${this.settings(cfg, available)}`;
-    }
-    ruleKind(o) {
-        if (o.calendar !== undefined)
-            return "calendar";
-        return o.dates?.type || "none";
-    }
-    setRuleKind(d, index, kind) {
-        const overlays = [...d.overlays];
-        const base = { ...overlays[index] };
-        delete base.calendar;
-        delete base.match;
-        delete base.dates;
-        if (kind === "calendar")
-            base.calendar = "";
-        else if (kind === "fixed")
-            base.dates = { type: "fixed", from: "12-01", to: "12-26" };
-        else if (kind === "easter")
-            base.dates = { type: "easter", from: -7, to: 1 };
-        else if (kind === "nth_weekday")
-            base.dates = {
-                type: "nth_weekday",
-                weekday: "sun",
-                nth: -4,
-                anchor: "12-25",
-                days: 28,
-            };
-        overlays[index] = base;
-        this.draft = { ...d, overlays };
-    }
-    overlayRule(d, o, index) {
-        const t = this.t;
-        const kind = this.ruleKind(o);
-        const patch = (changes) => {
-            const overlays = [...d.overlays];
-            overlays[index] = { ...overlays[index], ...changes };
-            this.draft = { ...d, overlays };
-        };
-        const dates = (changes) => patch({ dates: { ...o.dates, ...changes } });
-        const rule = o.dates;
-        const num = (e) => Number(e.target.value);
-        const text = (e) => e.target.value;
-        return b `<div class="grid rule">
-      <label class="field"
-        >${t.rule}<select
-          name="rule-kind"
-          @change=${(e) => this.setRuleKind(d, index, text(e))}
-        >
-          ${["none", "calendar", "fixed", "easter", "nth_weekday"].map((k) => b `<option value=${k} ?selected=${kind === k}>${t.rules[k]}</option>`)}
-        </select></label
+      <button
+        class="apply"
+        data-action="apply"
+        type="button"
+        ?disabled=${this.busy || !available}
+        @click=${() => this.call("apply_scene", { force: true })}
       >
-      ${kind === "calendar"
-            ? b `<label class="field"
-                >${t.calendar}<ha-entity-picker
-                  .hass=${this.hass}
-                  .value=${o.calendar || ""}
-                  .includeDomains=${["calendar"]}
-                  @value-changed=${(e) => patch({ calendar: e.detail.value || "" })}
-                ></ha-entity-picker></label
-              ><label class="field"
-                >${t.match}<input
-                  name="rule-match"
-                  placeholder=${t.matchPlaceholder}
-                  .value=${o.match || ""}
-                  @input=${(e) => patch({ match: text(e) })}
-              /></label>`
-            : A}
-      ${kind === "fixed"
-            ? b `<label class="field"
-                >${t.from}<input
-                  name="rule-from"
-                  placeholder="12-01"
-                  .value=${rule?.from ?? ""}
-                  @input=${(e) => dates({ from: text(e) })}
-              /></label>
-              <label class="field"
-                >${t.to}<input
-                  name="rule-to"
-                  placeholder="12-26"
-                  .value=${rule?.to ?? ""}
-                  @input=${(e) => dates({ to: text(e) })}
-              /></label>`
-            : A}
-      ${kind === "easter"
-            ? b `<label class="field"
-                >${t.fromDays}<input
-                  name="rule-from"
-                  type="number"
-                  .value=${String(rule?.from ?? 0)}
-                  @input=${(e) => dates({ from: num(e) })}
-              /></label>
-              <label class="field"
-                >${t.toDays}<input
-                  name="rule-to"
-                  type="number"
-                  .value=${String(rule?.to ?? 0)}
-                  @input=${(e) => dates({ to: num(e) })}
-              /></label>`
-            : A}
-      ${kind === "nth_weekday"
-            ? b `<label class="field"
-                >${t.weekday}<select
-                  name="rule-weekday"
-                  @change=${(e) => dates({ weekday: text(e) })}
-                >
-                  ${Object.entries(t.weekdays).map(([id, label]) => b `<option value=${id} ?selected=${rule?.weekday === id}>${label}</option>`)}
-                </select></label
-              ><label class="field"
-                >${t.nth}<input
-                  name="rule-nth"
-                  type="number"
-                  min="-5"
-                  max="5"
-                  .value=${String(rule?.nth ?? -1)}
-                  @input=${(e) => dates({ nth: num(e) })}
-              /></label>
-              <label class="field"
-                >${t.basis}<select
-                  name="rule-basis"
-                  @change=${(e) => dates(text(e) === "anchor" ? { anchor: "12-25", month: undefined } : { month: 12, anchor: undefined })}
-                >
-                  <option
-                    value="anchor"
-                    ?selected=${rule?.anchor !== undefined}
-                  >
-                    ${t.anchorBasis}
-                  </option>
-                  <option value="month" ?selected=${rule?.anchor === undefined}>
-                    ${t.monthBasis}
-                  </option>
-                </select></label
-              >
-              ${rule?.anchor !== undefined
-                ? b `<label class="field"
-                      >${t.anchor}<input
-                        name="rule-anchor"
-                        placeholder="12-25"
-                        .value=${rule?.anchor ?? ""}
-                        @input=${(e) => dates({ anchor: text(e) })}
-                    /></label>`
-                : b `<label class="field"
-                      >${t.month}<input
-                        name="rule-month"
-                        type="number"
-                        min="1"
-                        max="12"
-                        .value=${String(rule?.month ?? 12)}
-                        @input=${(e) => dates({ month: num(e) })}
-                    /></label>`}
-              <label class="field"
-                >${t.days}<input
-                  name="rule-days"
-                  type="number"
-                  min="1"
-                  max="366"
-                  .value=${String(rule?.days ?? 1)}
-                  @input=${(e) => dates({ days: num(e) })}
-              /></label>`
-            : A}
-      ${kind === "none"
-            ? A
-            : b `<label class="field"
-                >${t.whenOccupied}<select
-                  name="rule-when-occupied"
-                  @change=${(e) => patch({ when_occupied: text(e) === "" ? undefined : text(e) === "true" })}
-                >
-                  <option
-                    value=""
-                    ?selected=${typeof o.when_occupied !== "boolean"}
-                  >
-                    ${t.always}
-                  </option>
-                  <option value="true" ?selected=${o.when_occupied === true}>
-                    ${t.someoneHome}
-                  </option>
-                  <option value="false" ?selected=${o.when_occupied === false}>
-                    ${t.nobodyHome}
-                  </option>
-                </select></label
-              ><label class="field"
-                >${t.whenState}<select
-                  name="rule-when-state"
-                  multiple
-                  size="3"
-                  @change=${(e) => patch({ when_state: Array.from(e.target.selectedOptions).map((x) => x.value) })}
-                >
-                  ${d.state_tree.map((n) => b `<option value=${n.id} ?selected=${o.when_state?.includes(n.id)}>${this.stateName(n)}</option>`)}
-                </select></label
-              ><label class="field"
-                >${t.priority}<input
-                  name="rule-priority"
-                  type="number"
-                  min="-100"
-                  max="100"
-                  .value=${String(o.priority ?? 0)}
-                  @input=${(e) => patch({ priority: num(e) })}
-              /></label>`}
-    </div>`;
-    }
-    ordered(nodes, parent = null, depth = 0) {
-        return this.branches(parent, nodes).flatMap((n) => [
-            [n, depth],
-            ...this.ordered(nodes, n.id, depth + 1),
-        ]);
-    }
-    settings(cfg, available = true) {
-        const d = this.draft || cfg, t = this.t, node = d.state_tree.find((n) => n.id === this.selected), blocked = node
-            ? this.descendants(node.id, d.state_tree)
-            : new Set();
-        const sch = cfg.night_schedule || { type: "off" };
-        return b `<dialog @cancel=${this.close}>
-      <div class="dialog-head">
-        <h2>${t.settings}</h2>
-        <button class="icon" aria-label=${t.close} @click=${this.close}>
-          ×
-        </button>
-      </div>
-      <div class="settings">
-        <div class="section">
-          <div class="row">
-            <h3>${t.tree}</h3>
-            <button data-action="add-root" @click=${() => this.addNode(null)}>
-              ${t.addRoot}
-            </button>
-          </div>
-          <div class="tree-list">
-            ${this.ordered(d.state_tree).map(([n, depth]) => b `<button data-node=${n.id} class=${n.id === this.selected ? "active" : ""} style=${`padding-left:${8 + depth * 18}px`} @click=${() => (this.selected = n.id)}>${this.stateName(n)}<small>${n.id}</small></button>`)}
-          </div>
-        </div>
-        ${node
-            ? b `<div class="section grid">
-                <label class="field"
-                  >${t.name}<input
-                    name="node-name"
-                    .value=${node.name}
-                    maxlength="100"
-                    @input=${(e) => this.patchNode({ name: e.target.value })} /></label
-                ><label class="field"
-                  >${t.id}<input .value=${node.id} disabled /></label
-                ><label class="field"
-                  >${t.parent}<select
-                    @change=${(e) => this.reparent(e.target.value || null)}
-                  >
-                    <option value="" ?selected=${node.parent === null}>
-                      —
-                    </option>
-                    ${d.state_tree.filter((n) => !blocked.has(n.id)).map((n) => b `<option value=${n.id} ?selected=${node.parent === n.id}>${this.stateName(n)}</option>`)}
-                  </select></label
-                ><label class="field"
-                  >${t.scene}<ha-entity-picker
-                    .hass=${this.hass}
-                    .value=${node.scene}
-                    .includeDomains=${["scene"]}
-                    allow-custom-entity
-                    @value-changed=${(e) => this.patchNode({ scene: e.detail.value || "" })}
-                  ></ha-entity-picker></label
-                ><label class="field"
-                  >${t.defaultChild}<select
-                    @change=${(e) => this.patchNode({ default_child: e.target.value || null })}
-                  >
-                    <option value="" ?selected=${node.default_child === null}>
-                      —
-                    </option>
-                    ${this.branches(node.id, d.state_tree).map((n) => b `<option value=${n.id} ?selected=${node.default_child === n.id}>${this.stateName(n)}</option>`)}
-                  </select></label
-                ><label class="field"
-                  >${t.occupied}<select
-                    @change=${(e) => this.patchNode({ occupied: e.target.value === "inherit" ? null : e.target.value === "true" })}
-                  >
-                    <option value="inherit" ?selected=${node.occupied === null}>
-                      ${t.inherit}
-                    </option>
-                    <option value="true" ?selected=${node.occupied === true}>
-                      ${t.yes}
-                    </option>
-                    <option value="false" ?selected=${node.occupied === false}>
-                      ${t.no}
-                    </option>
-                  </select></label
-                ><button
-                  data-action="add-child"
-                  @click=${() => this.addNode(node.id)}
-                >
-                  ${t.addChild}</button
-                ><button
-                  data-action="remove-node"
-                  ?disabled=${d.state_tree.length === 1}
-                  @click=${this.removeNode}
-                >
-                  ${t.remove}
-                </button>
-              </div>`
-            : A}
-        <div class="section grid">
-          <label class="field"
-            >${t.initial}<select
-              @change=${(e) => (this.draft = { ...d, initial_state: e.target.value })}
-            >
-              ${d.state_tree.map((n) => b `<option value=${n.id} ?selected=${d.initial_state === n.id}>${this.stateName(n)}</option>`)}
-            </select></label
-          >${["arrival", "departure", "vacation", "night"].map((role) => b `<label class="field"
-                >${t[role]}<select
-                  @change=${(e) => (this.draft = { ...d, roles: { ...d.roles, [role]: e.target.value || null } })}
-                >
-                  <option value="" ?selected=${!d.roles[role]}>—</option>
-                  ${d.state_tree.filter((n) => (role === "arrival" || role === "night" ? this.isOccupied(n.id, d.state_tree) : !this.isOccupied(n.id, d.state_tree))).map((n) => b `<option value=${n.id} ?selected=${d.roles[role] === n.id}>${this.stateName(n)}</option>`)}
-                </select></label
-              >`)}
-        </div>
-        <div class="section">
-          <div class="row">
-            <h3>${t.overlays}</h3>
-            <button
-              @click=${() => {
-            const id = this.newId("new_overlay", d.overlays.map((o) => ({
-                ...o,
-                parent: null,
-                default_child: null,
-                occupied: null,
-            })));
-            this.draft = {
-                ...d,
-                overlays: [
-                    ...d.overlays,
-                    { id, name: this.t.newOverlay, scene: "" },
-                ],
-            };
-        }}
-            >
-              ${t.addOverlay}
-            </button>
-          </div>
-          ${d.overlays.map((o, i) => b `<div class="grid">
-                <label class="field"
-                  >${t.name}<input
-                    .value=${o.name}
-                    @input=${(e) => {
-            const overlays = [...d.overlays];
-            overlays[i] = {
-                ...o,
-                name: e.target.value,
-            };
-            this.draft = { ...d, overlays };
-        }} /></label
-                ><label class="field"
-                  >${t.scene}<ha-entity-picker
-                    .hass=${this.hass}
-                    .value=${o.scene}
-                    .includeDomains=${["scene"]}
-                    @value-changed=${(e) => {
-            const overlays = [...d.overlays];
-            overlays[i] = { ...o, scene: e.detail.value || "" };
-            this.draft = { ...d, overlays };
-        }}
-                  ></ha-entity-picker></label
-                ><button
-                  @click=${() => (this.draft = { ...d, overlays: d.overlays.filter((x) => x.id !== o.id) })}
-                >
-                  ${t.remove}
-                </button>
-                ${this.overlayRule(d, o, i)}
-              </div>`)}
-        </div>
-        ${available ? this.operationalSettings(cfg, sch) : b `<fieldset disabled>${this.operationalSettings(cfg, sch)}</fieldset>`}
-      </div>
-      <div class="dialog-actions">
-        <button
-          data-action="apply-scene"
-          ?disabled=${!available}
-          @click=${() => this.call("apply_scene", { force: true })}
-        >
-          ${t.apply}</button
-        ><span></span><button @click=${this.close}>${t.cancel}</button
-        ><button
-          data-action="save"
-          class="primary"
-          ?disabled=${this.busy || !available}
-          @click=${this.saveDraft}
-        >
-          ${t.save}
-        </button>
-      </div>
-    </dialog>`;
-    }
-    operationalSettings(c, sch) {
-        return b `<div class="section">
-        <h3>${this.t.entities}</h3>
-        ${[
-            ["door_entities", c.door_entities, ["lock"]],
-            ["gate_entities", c.gate_entities, ["cover"]],
-            ["person_entities", c.person_entities, ["person"]],
-        ].map(([key, value, domain]) => b `<label class="field"
-              >${this.t[String(key).replace("_entities", "")]}<ha-selector
-                .hass=${this.hass}
-                .selector=${{ entity: { multiple: true, domain } }}
-                .value=${value || []}
-                @value-changed=${(e) => this.saveOption(String(key), e.detail.value || [])}
-              ></ha-selector
-            ></label>`)}
-      </div>
-      <div class="section">
-        <h3>${this.t.automation}</h3>
-        <label class="toggle"
-          >${this.t.autoReturn}<ha-switch
-            .checked=${c.auto_return}
-            @change=${(e) => this.saveOption("auto_return", e.target.checked)}
-          ></ha-switch></label
-        ><label class="toggle"
-          >${this.t.autoAway}<ha-switch
-            .checked=${c.auto_away}
-            @change=${(e) => this.saveOption("auto_away", e.target.checked)}
-          ></ha-switch></label
-        ><label class="field"
-          >${this.t.grace}<input
-            type="number"
-            .value=${String(c.auto_away_grace ?? 300)}
-            @change=${(e) => this.saveOption("auto_away_grace", Number(e.target.value))} /></label
-        ><label class="field"
-          >${this.t.schedule}<select
-            @change=${(e) => {
-            const type = e.target.value;
-            this.saveOption("night_schedule", type === "fixed"
-                ? { type, time: "22:00:00" }
-                : type === "sun"
-                    ? { type, event: "sunset", offset: 0 }
-                    : { type: "off" });
-        }}
-          >
-            <option value="off" ?selected=${sch.type === "off"}>
-              ${this.t.off}
-            </option>
-            <option value="fixed" ?selected=${sch.type === "fixed"}>
-              ${this.t.fixedTime}
-            </option>
-            <option value="sun" ?selected=${sch.type === "sun"}>
-              ${this.t.solarTime}
-            </option>
-          </select></label
-        >
-        ${sch.type === "fixed"
-            ? b `<label class="field"
-                >${this.t.time}<input
-                  type="time"
-                  step="1"
-                  .value=${sch.time || "22:00:00"}
-                  @change=${(e) => {
-                const value = e.target.value;
-                this.saveOption("night_schedule", {
-                    type: "fixed",
-                    time: value.length === 5 ? `${value}:00` : value,
-                });
-            }}
-              /></label>`
-            : A}
-        ${sch.type === "sun"
-            ? b `<div class="grid">
-                <label class="field"
-                  >${this.t.event}<select
-                    @change=${(e) => this.saveOption("night_schedule", { ...sch, event: e.target.value })}
-                  >
-                    <option
-                      value="sunset"
-                      ?selected=${(sch.event || "sunset") === "sunset"}
-                    >
-                      ${this.t.sunset}
-                    </option>
-                    <option
-                      value="sunrise"
-                      ?selected=${sch.event === "sunrise"}
-                    >
-                      ${this.t.sunrise}
-                    </option>
-                  </select></label
-                ><label class="field"
-                  >${this.t.offset}<input
-                    type="number"
-                    .value=${String(sch.offset || 0)}
-                    @change=${(e) => this.saveOption("night_schedule", { ...sch, offset: Number(e.target.value) })}
-                /></label>
-              </div>`
-            : A}
-        <div class="grid">
-          ${["state", "overlay"].map((key) => b `<label class="field"
-                >${this.t.legacy[key]}<ha-entity-picker
-                  .hass=${this.hass}
-                  .value=${c.legacy_mirror?.[key] || ""}
-                  .includeDomains=${["input_select"]}
-                  allow-custom-entity
-                  @value-changed=${(e) => {
-            const mirror = { ...c.legacy_mirror };
-            if (e.detail.value)
-                mirror[key] = e.detail.value;
-            else
-                delete mirror[key];
-            this.saveOption("legacy_mirror", mirror);
-        }}
-                ></ha-entity-picker
-              ></label>`)}
-        </div>
-      </div>`;
+        ${this.t.apply}
+      </button>
+      <div
+        class="status"
+        title=${path.map((id) => this.stateName(byId.get(id)) || id).join(" › ")}
+      >
+        ${this.stateName(byId.get(path[path.length - 1] || "")) || entity.state}
+        · ${this.duration(a.since)} ·
+        ${this.t.reason[a.last_changed_by] || a.last_changed_by || ""}${this.held(a.overlay_hold_until)}
+      </div></ha-card
+    >`;
     }
 };
 HouseStateCard.styles = styles;
@@ -1464,12 +612,6 @@ __decorate([
 __decorate([
     r()
 ], HouseStateCard.prototype, "busy", void 0);
-__decorate([
-    r()
-], HouseStateCard.prototype, "draft", void 0);
-__decorate([
-    r()
-], HouseStateCard.prototype, "selected", void 0);
 HouseStateCard = __decorate([
     t("lovelace-house-state-card")
 ], HouseStateCard);

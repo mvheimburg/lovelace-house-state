@@ -21,12 +21,6 @@ export interface CardConfig {
   show_overlay?: boolean;
   confirm_vacation?: boolean;
 }
-export type Schedule = {
-  type: "off" | "fixed" | "sun";
-  time?: string;
-  event?: "sunset" | "sunrise";
-  offset?: number;
-};
 export interface StateNode {
   id: string;
   name: string;
@@ -46,7 +40,6 @@ export type DateRule =
       month?: number;
       anchor?: string;
     };
-export type RuleKind = "none" | "calendar" | DateRule["type"];
 export interface Overlay {
   id: string;
   name: string;
@@ -69,12 +62,4 @@ export interface RuntimeConfig {
   initial_state: string;
   overlays: Overlay[];
   roles: Roles;
-  door_entities: string[];
-  gate_entities: string[];
-  person_entities: string[];
-  auto_return: boolean;
-  auto_away: boolean;
-  auto_away_grace: number;
-  night_schedule: Schedule;
-  legacy_mirror?: { state?: string; overlay?: string };
 }
