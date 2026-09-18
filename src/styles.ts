@@ -247,6 +247,32 @@ export const styles = css`
     background: var(--hs-pill);
     --accent: var(--hs-muted);
   }
+  .panel summary {
+    list-style: none;
+    cursor: pointer;
+    border-radius: calc(var(--hs-radius) - 6px);
+  }
+  .panel summary::-webkit-details-marker {
+    display: none;
+  }
+  .panel-text {
+    flex: 1;
+    min-width: 0;
+  }
+  .chevron {
+    display: grid;
+    place-items: center;
+    width: 44px;
+    height: 44px;
+    color: var(--hs-muted);
+    transition: transform 0.2s;
+  }
+  details[open] .chevron {
+    transform: rotate(180deg);
+  }
+  details:not([open]) {
+    gap: 0;
+  }
   .panel.on {
     --accent: var(--hs-overlay);
   }

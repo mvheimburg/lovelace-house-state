@@ -284,7 +284,7 @@ describe("date-driven overlays", () => {
     });
     expect(
       el.shadowRoot!.querySelector(".overlay-caption")!.textContent!.trim(),
-    ).toBe("Automatic · Cozy lights");
+    ).toBe("Overlays · Automatic · Cozy lights");
     expect(
       el.shadowRoot!.querySelector(".panel-value")!.textContent!.trim(),
     ).toBe("Cozy lights");
@@ -318,7 +318,7 @@ describe("date-driven overlays", () => {
     });
     const caption =
       el.shadowRoot!.querySelector(".overlay-caption")!.textContent!;
-    expect(caption).toContain("Chosen manually · manual until");
+    expect(caption).toContain("Overlays · Chosen manually · manual until");
   });
   it("leaves the status clean without a hold", async () => {
     const { el } = await setup(withRules);
@@ -739,4 +739,19 @@ describe("status and feedback", () => {
       home.el.shadowRoot.querySelector('[data-state="home"]').textContent,
     ).toBe("Home");
   });
+});
+
+it("keeps the overlay section folded until the viewer opens it", async () => {
+  const { el, callService } = await setup({ overlay: "cozy" });
+  const panel = el.shadowRoot.querySelector("details.overlay");
+  expect(panel.open).toBe(false);
+  expect(panel.querySelector("summary").textContent).toContain("Cozy lights");
+  panel.querySelector("summary").click();
+  await el.updateComplete;
+  expect(panel.open).toBe(true);
+  el.shadowRoot.querySelector('[data-overlay="none"]').click();
+  await vi.waitFor(() => expect(callService).toHaveBeenCalled());
+  el.hass = { ...el.hass };
+  await el.updateComplete;
+  expect(el.shadowRoot.querySelector("details.overlay").open).toBe(true);
 });

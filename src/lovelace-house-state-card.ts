@@ -319,22 +319,27 @@ export class HouseStateCard extends LitElement {
       >
         ${label}
       </button>`;
-    return html`<div class="panel overlay ${inForce ? "on" : ""}">
-      <div class="panel-head">
+    // Closed by default: overlays are occasional, the row still says which
+    // one is in force and why. Lit leaves the viewer's open state alone.
+    return html`<details class="panel overlay ${inForce ? "on" : ""}">
+      <summary class="panel-head">
         <span class="circ">${icon("overlay")}</span>
         <div class="panel-text">
-          <div class="caption overlay-caption">${caption}</div>
+          <div class="caption overlay-caption">
+            ${this.t.overlays} · ${caption}
+          </div>
           <div class="panel-value">
             ${inForce ? this.overlayName(inForce) : this.t.off}
           </div>
         </div>
-      </div>
+        <span class="chevron">${icon("chevron")}</span>
+      </summary>
       <div class="chips" role="group" aria-label=${this.t.overlays}>
         ${automatic ? chip("auto", this.t.automatic) : nothing}
         ${chip("none", this.t.off)}
         ${overlays.map((o) => chip(o.id, this.overlayName(o)))}
       </div>
-    </div>`;
+    </details>`;
   }
   private renderApply(
     a: Record<string, any>,

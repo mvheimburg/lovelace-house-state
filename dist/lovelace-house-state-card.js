@@ -320,6 +320,32 @@ const styles = i$3 `
     background: var(--hs-pill);
     --accent: var(--hs-muted);
   }
+  .panel summary {
+    list-style: none;
+    cursor: pointer;
+    border-radius: calc(var(--hs-radius) - 6px);
+  }
+  .panel summary::-webkit-details-marker {
+    display: none;
+  }
+  .panel-text {
+    flex: 1;
+    min-width: 0;
+  }
+  .chevron {
+    display: grid;
+    place-items: center;
+    width: 44px;
+    height: 44px;
+    color: var(--hs-muted);
+    transition: transform 0.2s;
+  }
+  details[open] .chevron {
+    transform: rotate(180deg);
+  }
+  details:not([open]) {
+    gap: 0;
+  }
   .panel.on {
     --accent: var(--hs-overlay);
   }
@@ -625,6 +651,7 @@ const paths = {
     warning: w `<path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"></path><path d="M12 9v4M12 17h.01"></path>`,
     water: w `<path d="M12 2.7s6 6.4 6 11.3a6 6 0 0 1-12 0c0-4.9 6-11.3 6-11.3z"></path>`,
     key: w `<circle cx="7.5" cy="15.5" r="4.5"></circle><path d="M10.7 12.3 21 2M16 7l3 3"></path>`,
+    chevron: w `<path d="m6 9 6 6 6-6"></path>`,
     cog: w `<circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path>`,
 };
 const STATES = new Set([
@@ -970,22 +997,27 @@ let HouseStateCard = class HouseStateCard extends i {
       >
         ${label}
       </button>`;
-        return b `<div class="panel overlay ${inForce ? "on" : ""}">
-      <div class="panel-head">
+        // Closed by default: overlays are occasional, the row still says which
+        // one is in force and why. Lit leaves the viewer's open state alone.
+        return b `<details class="panel overlay ${inForce ? "on" : ""}">
+      <summary class="panel-head">
         <span class="circ">${icon("overlay")}</span>
         <div class="panel-text">
-          <div class="caption overlay-caption">${caption}</div>
+          <div class="caption overlay-caption">
+            ${this.t.overlays} · ${caption}
+          </div>
           <div class="panel-value">
             ${inForce ? this.overlayName(inForce) : this.t.off}
           </div>
         </div>
-      </div>
+        <span class="chevron">${icon("chevron")}</span>
+      </summary>
       <div class="chips" role="group" aria-label=${this.t.overlays}>
         ${automatic ? chip("auto", this.t.automatic) : A}
         ${chip("none", this.t.off)}
         ${overlays.map((o) => chip(o.id, this.overlayName(o)))}
       </div>
-    </div>`;
+    </details>`;
     }
     renderApply(a, overlays, disabled) {
         const inForce = overlays.find((o) => o.id === a.overlay);
