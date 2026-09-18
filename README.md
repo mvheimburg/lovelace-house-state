@@ -1,3 +1,5 @@
+<img src="images/icon.png" alt="" width="96" align="right">
+
 # House State Card
 
 A compact Home Assistant card for the [`house_state`](https://github.com/mvheimburg/house-state) integration. It renders any configured state tree, selects independent overlays, and keeps everyday controls on the dashboard.
