@@ -1,8 +1,9 @@
+import { colorSchemeSchema, colorSchemeText } from "./color-schemes";
 import { LitElement, html, css } from "lit";
 import { customElement, property, state } from "lit/decorators.js";
 import type { CardConfig, HomeAssistant } from "./types";
 import { localize } from "./localize";
-const schema = (t: ReturnType<typeof localize>) => [
+const schema = (t: ReturnType<typeof localize>, hass: HomeAssistant) => [
   {
     name: "appearance",
     selector: {
@@ -14,6 +15,7 @@ const schema = (t: ReturnType<typeof localize>) => [
       },
     },
   },
+  colorSchemeSchema(hass),
   {
     name: "entity",
     required: true,
@@ -30,6 +32,7 @@ export class Editor extends LitElement {
   setConfig(c: CardConfig) {
     this.config = {
       appearance: "default",
+      color_scheme: "home-assistant",
       show_overlay: true,
       confirm_vacation: true,
       ...c,
@@ -50,8 +53,8 @@ export class Editor extends LitElement {
     return html`<ha-form
       .hass=${this.hass}
       .data=${this.config}
-      .schema=${schema(localize(this.hass))}
-      .computeLabel=${(x: { name: string }) => ({ appearance: localize(this.hass).appearance, entity: localize(this.hass).entityLabel, name: localize(this.hass).name, show_overlay: localize(this.hass).showOverlay, confirm_vacation: localize(this.hass).confirmVacation })[x.name] || x.name}
+      .schema=${schema(localize(this.hass), this.hass)}
+      .computeLabel=${(x: { name: string }) => ({ color_scheme: colorSchemeText(this.hass).label, appearance: localize(this.hass).appearance, entity: localize(this.hass).entityLabel, name: localize(this.hass).name, show_overlay: localize(this.hass).showOverlay, confirm_vacation: localize(this.hass).confirmVacation })[x.name] || x.name}
       @value-changed=${this.changed}
     ></ha-form>`;
   }

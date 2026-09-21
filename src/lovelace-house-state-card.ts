@@ -1,3 +1,4 @@
+import { applyColorScheme } from "./color-schemes";
 import { LitElement, html, nothing } from "lit";
 import { customElement, property, state } from "lit/decorators.js";
 import { styles } from "./styles";
@@ -33,6 +34,7 @@ export class HouseStateCard extends LitElement {
 
   setConfig(config: CardConfig) {
     if (!config.entity) throw new Error(this.t.entityRequired);
+    applyColorScheme(this, config.color_scheme, this.hass);
     if (this.config?.entity !== config.entity) {
       this.lastValid = undefined;
       this.failure = undefined;

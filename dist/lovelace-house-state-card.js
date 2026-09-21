@@ -53,6 +53,134 @@ const t$1=globalThis,i$1=t=>t,s$1=t$1.trustedTypes,e=s$1?s$1.createPolicy("lit-h
  * SPDX-License-Identifier: BSD-3-Clause
  */const s=globalThis;class i extends y$1{constructor(){super(...arguments),this.renderOptions={host:this},this._$Do=void 0;}createRenderRoot(){const t=super.createRenderRoot();return this.renderOptions.renderBefore??=t.firstChild,t}update(t){const r=this.render();this.hasUpdated||(this.renderOptions.isConnected=this.isConnected),super.update(t),this._$Do=D(r,this.renderRoot,this.renderOptions);}connectedCallback(){super.connectedCallback(),this._$Do?.setConnected(true);}disconnectedCallback(){super.disconnectedCallback(),this._$Do?.setConnected(false);}render(){return E}}i._$litElement$=true,i["finalized"]=true,s.litElementHydrateSupport?.({LitElement:i});const o$1=s.litElementPolyfillSupport;o$1?.({LitElement:i});(s.litElementVersions??=[]).push("4.2.2");
 
+const colorSchemes = [
+    "home-assistant",
+    "bright",
+    "warm",
+    "mint",
+    "sky",
+    "lavender",
+];
+const en$1 = {
+    label: "Color scheme",
+    "home-assistant": "Home Assistant",
+    bright: "Bright",
+    warm: "Warm",
+    mint: "Mint",
+    sky: "Sky",
+    lavender: "Lavender",
+    invalid: "Choose a valid color_scheme: home-assistant, bright, warm, mint, sky or lavender.",
+};
+const nb$1 = {
+    label: "Fargevalg",
+    "home-assistant": "Home Assistant",
+    bright: "Lys",
+    warm: "Varm",
+    mint: "Mint",
+    sky: "Himmelblå",
+    lavender: "Lavendel",
+    invalid: "Velg en gyldig color_scheme: home-assistant, bright, warm, mint, sky eller lavender.",
+};
+function colorSchemeText(hass) {
+    const language = (hass?.language || hass?.locale?.language || "en")
+        .toLowerCase()
+        .replace(/_/g, "-")
+        .split("-")[0];
+    return ["nb", "no", "nn"].includes(language) ? nb$1 : en$1;
+}
+function applyColorScheme(host, value, hass) {
+    const scheme = value === undefined ? "home-assistant" : value;
+    if (typeof scheme !== "string" ||
+        !colorSchemes.includes(scheme)) {
+        throw new Error(colorSchemeText(hass).invalid);
+    }
+    if (scheme === "home-assistant")
+        host.removeAttribute("data-color-scheme");
+    else
+        host.setAttribute("data-color-scheme", scheme);
+}
+function colorSchemeSchema(hass) {
+    const text = colorSchemeText(hass);
+    return {
+        name: "color_scheme",
+        selector: {
+            select: {
+                mode: "dropdown",
+                options: colorSchemes.map((value) => ({ value, label: text[value] })),
+            },
+        },
+    };
+}
+/** Local overrides only: removing the attribute restores the dashboard theme. */
+const colorSchemeStyles = i$3 `
+  :host([data-color-scheme]) {
+    color-scheme: light;
+    --primary-text-color: #202b36;
+    --secondary-text-color: #52606d;
+    --disabled-text-color: #626d78;
+    --text-primary-color: #fff;
+    --success-color: #28723c;
+    --warning-color: #8c6100;
+    --error-color: #bd2635;
+    --orange-color: #ab4b13;
+    --info-color: #146a91;
+    --primary-color: var(--scheme-accent);
+    --accent-color: var(--scheme-accent);
+    --card-background-color: var(--scheme-surface);
+    --ha-card-background: var(--scheme-surface);
+    --primary-background-color: var(--scheme-surface);
+    --secondary-background-color: var(--scheme-secondary);
+    --divider-color: var(--scheme-border);
+    --ha-card-border-color: var(--scheme-border);
+    --bubble-main-background-color: var(--scheme-surface);
+    --bubble-secondary-background-color: var(--scheme-secondary);
+    --bubble-icon-background-color: var(--scheme-secondary);
+    --bubble-sub-button-background-color: var(--scheme-secondary);
+    --bubble-accent-color: var(--scheme-accent);
+    --bubble-border: 1px solid var(--scheme-border);
+    --ha-card-box-shadow: 0 2px 8px rgb(32 43 54 / 0.06);
+    --bubble-box-shadow: var(--ha-card-box-shadow);
+    --input-fill-color: var(--scheme-secondary);
+    --input-ink-color: var(--primary-text-color);
+    --input-label-ink-color: var(--secondary-text-color);
+    --mdc-theme-primary: var(--scheme-accent);
+    --mdc-theme-surface: var(--scheme-surface);
+    --mdc-theme-on-surface: var(--primary-text-color);
+    --mdc-text-field-fill-color: var(--scheme-secondary);
+    --mdc-text-field-ink-color: var(--primary-text-color);
+  }
+  :host([data-color-scheme="bright"]) {
+    --scheme-surface: #ffffff;
+    --scheme-secondary: #edf3fa;
+    --scheme-accent: #2365a5;
+    --scheme-border: #ccd9e7;
+  }
+  :host([data-color-scheme="warm"]) {
+    --scheme-surface: #fffaf1;
+    --scheme-secondary: #f4ead9;
+    --scheme-accent: #885321;
+    --scheme-border: #ddd0ba;
+  }
+  :host([data-color-scheme="mint"]) {
+    --scheme-surface: #f2fbf5;
+    --scheme-secondary: #dfefe5;
+    --scheme-accent: #286c50;
+    --scheme-border: #c1d9ca;
+  }
+  :host([data-color-scheme="sky"]) {
+    --scheme-surface: #f1f8ff;
+    --scheme-secondary: #dfeefa;
+    --scheme-accent: #22638e;
+    --scheme-border: #c2d8e9;
+  }
+  :host([data-color-scheme="lavender"]) {
+    --scheme-surface: #faf5ff;
+    --scheme-secondary: #ede3f6;
+    --scheme-accent: #725095;
+    --scheme-border: #d7c8e5;
+  }
+`;
+
 /**
  * @license
  * Copyright 2017 Google LLC
@@ -473,6 +601,7 @@ const styles = i$3 `
       font-size: 26px;
     }
   }
+  ${colorSchemeStyles}
 `;
 
 const en = {
@@ -671,7 +800,7 @@ const icon = (name, extra = "") => paths[name]
     ? b `<svg class="i ${extra}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${paths[name]}</svg>`
     : null;
 
-const schema = (t) => [
+const schema = (t, hass) => [
     {
         name: "appearance",
         selector: {
@@ -683,6 +812,7 @@ const schema = (t) => [
             },
         },
     },
+    colorSchemeSchema(hass),
     {
         name: "entity",
         required: true,
@@ -696,6 +826,7 @@ let Editor = class Editor extends i {
     setConfig(c) {
         this.config = {
             appearance: "default",
+            color_scheme: "home-assistant",
             show_overlay: true,
             confirm_vacation: true,
             ...c,
@@ -715,8 +846,8 @@ let Editor = class Editor extends i {
         return b `<ha-form
       .hass=${this.hass}
       .data=${this.config}
-      .schema=${schema(localize(this.hass))}
-      .computeLabel=${(x) => ({ appearance: localize(this.hass).appearance, entity: localize(this.hass).entityLabel, name: localize(this.hass).name, show_overlay: localize(this.hass).showOverlay, confirm_vacation: localize(this.hass).confirmVacation })[x.name] || x.name}
+      .schema=${schema(localize(this.hass), this.hass)}
+      .computeLabel=${(x) => ({ color_scheme: colorSchemeText(this.hass).label, appearance: localize(this.hass).appearance, entity: localize(this.hass).entityLabel, name: localize(this.hass).name, show_overlay: localize(this.hass).showOverlay, confirm_vacation: localize(this.hass).confirmVacation })[x.name] || x.name}
       @value-changed=${this.changed}
     ></ha-form>`;
     }
@@ -745,6 +876,7 @@ let HouseStateCard = class HouseStateCard extends i {
     setConfig(config) {
         if (!config.entity)
             throw new Error(this.t.entityRequired);
+        applyColorScheme(this, config.color_scheme, this.hass);
         if (this.config?.entity !== config.entity) {
             this.lastValid = undefined;
             this.failure = undefined;

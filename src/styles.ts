@@ -1,3 +1,4 @@
+import { colorSchemeStyles } from "./color-schemes";
 import { css } from "lit";
 export const styles = css`
   :host {
@@ -400,4 +401,5 @@ export const styles = css`
       font-size: 26px;
     }
   }
+  ${colorSchemeStyles}
 `;
