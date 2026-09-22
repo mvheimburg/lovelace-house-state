@@ -519,6 +519,16 @@ describe("everyday controls and central configuration", () => {
       ),
     ).toBe(true);
   });
+  it("opens the House State panel from settings when this user has it", async () => {
+    const { el } = await setup();
+    el.hass = { ...el.hass, panels: { "house-state": {} } };
+    await el.updateComplete;
+    expect(
+      el.shadowRoot
+        .querySelector('a[aria-label="Settings"]')
+        ?.getAttribute("href"),
+    ).toBe("/house-state");
+  });
   it("keeps the settings link usable with no sensor and no previous snapshot", async () => {
     const { el } = await setup();
     const fresh = document.createElement("lovelace-house-state-card");

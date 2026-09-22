@@ -1030,9 +1030,13 @@ let HouseStateCard = class HouseStateCard extends i {
         return (known ?? (tone === "home" ? "home" : tone === "neutral" ? "home" : tone));
     }
     settingsLink() {
+        // The integration's configuration panel when this user has it, else its page.
+        const href = this.hass?.panels?.["house-state"]
+            ? "/house-state"
+            : "/config/integrations/integration/house_state";
         return b `<a
       class="icon settings"
-      href="/config/integrations/integration/house_state"
+      href=${href}
       aria-label=${this.t.settings}
       title=${this.t.settings}
       >${icon("cog")}</a

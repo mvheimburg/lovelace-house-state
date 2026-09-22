@@ -8,6 +8,8 @@ export interface HomeAssistant {
   states: Record<string, HassEntity>;
   language?: string;
   locale?: { language?: string };
+  /** Sidebar panels this user can open; House State 0.6.0 adds `house-state` for admins. */
+  panels?: Record<string, unknown>;
   callService(
     domain: string,
     service: string,

@@ -27,7 +27,7 @@ confirm_vacation: true
 
 All card display options are available in the Lovelace visual editor. The integration starts with a Home/Day/Activity example, but none of those names or levels are special.
 
-**House State integration 0.3.0 or later is required for the central configuration flow.** Open **Settings → Devices & services → House State → Configure** to manage the state tree, scenes, default children, occupancy, automation roles, overlays and activation rules, door/gate/person entities, automatic return/away, grace period, night schedule and legacy mirrors through the integration's structured forms. The card's settings cog is a native link to the House State integration page, including while the sensor is unavailable.
+**House State integration 0.3.0 or later is required for the central configuration flow.** Open **Settings → Devices & services → House State → Configure** to manage the state tree, scenes, default children, occupancy, automation roles, overlays and activation rules, door/gate/person entities, automatic return/away, grace period, night schedule and legacy mirrors through the integration's structured forms. The card's settings cog opens the **House State** configuration panel (integration 0.6.0 or later, administrators), which shows the whole setup at once; otherwise it links to the House State integration page. It works while the sensor is unavailable too.
 
 The dashboard card contains status, state selection, optional overlay selection, vacation confirmation and **Apply scene now**.
 

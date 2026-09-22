@@ -1,6 +1,6 @@
 {
   "name": "lovelace-house-state",
-  "version": "0.5.0",
+  "version": "0.6.0",
   "description": "Lovelace card for the House State integration",
   "type": "module",
   "scripts": {
