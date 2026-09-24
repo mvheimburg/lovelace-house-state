@@ -65,7 +65,11 @@ const config = {
   night_schedule: { type: "off" },
   legacy_mirror: {},
 };
-const setup = async (attributes: Record<string, unknown> = {}) => {
+/** Most tests use the settings cog, so their card shows it; the default is tested below. */
+const setup = async (
+  attributes: Record<string, unknown> = {},
+  card: Record<string, unknown> = { show_settings: true },
+) => {
   const callService = vi.fn().mockResolvedValue(undefined);
   const el = document.createElement("lovelace-house-state-card") as any;
   el.hass = {
@@ -94,6 +98,7 @@ const setup = async (attributes: Record<string, unknown> = {}) => {
   el.setConfig({
     type: "custom:lovelace-house-state-card",
     entity: "sensor.house_state",
+    ...card,
   });
   document.body.append(el);
   await el.updateComplete;
@@ -397,6 +402,22 @@ describe("Bokmål presentation with English configuration", () => {
     expect(form.schema[0].selector.select.options[0]).toEqual({
       value: "default",
       label: "Standard",
+    });
+    expect(
+      ["show_settings", "weather", "show_forecast", "sensors"].map((name) =>
+        form.computeLabel({ name }),
+      ),
+    ).toEqual(["Vis innstillingsknapp", "Vær", "Vis værvarsel", "Sensorer"]);
+    const field = (name: string) =>
+      form.schema.find((f: { name: string }) => f.name === name);
+    expect(field("weather").selector).toEqual({
+      entity: { domain: "weather" },
+    });
+    expect(field("sensors").selector.entity.multiple).toBe(true);
+    // Both toggles start off.
+    expect(form.data).toMatchObject({
+      show_settings: false,
+      show_forecast: false,
     });
     const changed = vi.fn();
     editor.addEventListener("config-changed", changed);

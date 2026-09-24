@@ -45,7 +45,7 @@ const t$2=globalThis,e$2=t$2.ShadowRoot&&(void 0===t$2.ShadyCSS||t$2.ShadyCSS.na
  * Copyright 2017 Google LLC
  * SPDX-License-Identifier: BSD-3-Clause
  */
-const t$1=globalThis,i$1=t=>t,s$1=t$1.trustedTypes,e=s$1?s$1.createPolicy("lit-html",{createHTML:t=>t}):void 0,h="$lit$",o$2=`lit$${Math.random().toFixed(9).slice(2)}$`,n$1="?"+o$2,r$2=`<${n$1}>`,l=document,c=()=>l.createComment(""),a=t=>null===t||"object"!=typeof t&&"function"!=typeof t,u=Array.isArray,d=t=>u(t)||"function"==typeof t?.[Symbol.iterator],f="[ \t\n\f\r]",v=/<(?:(!--|\/[^a-zA-Z])|(\/?[a-zA-Z][^>\s]*)|(\/?$))/g,_=/-->/g,m=/>/g,p=RegExp(`>|${f}(?:([^\\s"'>=/]+)(${f}*=${f}*(?:[^ \t\n\f\r"'\`<>=]|("|')|))|$)`,"g"),g=/'/g,$=/"/g,y=/^(?:script|style|textarea|title)$/i,x=t=>(i,...s)=>({_$litType$:t,strings:i,values:s}),b=x(1),w=x(2),E=Symbol.for("lit-noChange"),A=Symbol.for("lit-nothing"),C=new WeakMap,P=l.createTreeWalker(l,129);function V(t,i){if(!u(t)||!t.hasOwnProperty("raw"))throw Error("invalid template strings array");return void 0!==e?e.createHTML(i):i}const N=(t,i)=>{const s=t.length-1,e=[];let n,l=2===i?"<svg>":3===i?"<math>":"",c=v;for(let i=0;i<s;i++){const s=t[i];let a,u,d=-1,f=0;for(;f<s.length&&(c.lastIndex=f,u=c.exec(s),null!==u);)f=c.lastIndex,c===v?"!--"===u[1]?c=_:void 0!==u[1]?c=m:void 0!==u[2]?(y.test(u[2])&&(n=RegExp("</"+u[2],"g")),c=p):void 0!==u[3]&&(c=p):c===p?">"===u[0]?(c=n??v,d=-1):void 0===u[1]?d=-2:(d=c.lastIndex-u[2].length,a=u[1],c=void 0===u[3]?p:'"'===u[3]?$:g):c===$||c===g?c=p:c===_||c===m?c=v:(c=p,n=void 0);const x=c===p&&t[i+1].startsWith("/>")?" ":"";l+=c===v?s+r$2:d>=0?(e.push(a),s.slice(0,d)+h+s.slice(d)+o$2+x):s+o$2+(-2===d?i:x);}return [V(t,l+(t[s]||"<?>")+(2===i?"</svg>":3===i?"</math>":"")),e]};class S{constructor({strings:t,_$litType$:i},e){let r;this.parts=[];let l=0,a=0;const u=t.length-1,d=this.parts,[f,v]=N(t,i);if(this.el=S.createElement(f,e),P.currentNode=this.el.content,2===i||3===i){const t=this.el.content.firstChild;t.replaceWith(...t.childNodes);}for(;null!==(r=P.nextNode())&&d.length<u;){if(1===r.nodeType){if(r.hasAttributes())for(const t of r.getAttributeNames())if(t.endsWith(h)){const i=v[a++],s=r.getAttribute(t).split(o$2),e=/([.?@])?(.*)/.exec(i);d.push({type:1,index:l,name:e[2],strings:s,ctor:"."===e[1]?I:"?"===e[1]?L:"@"===e[1]?z:H}),r.removeAttribute(t);}else t.startsWith(o$2)&&(d.push({type:6,index:l}),r.removeAttribute(t));if(y.test(r.tagName)){const t=r.textContent.split(o$2),i=t.length-1;if(i>0){r.textContent=s$1?s$1.emptyScript:"";for(let s=0;s<i;s++)r.append(t[s],c()),P.nextNode(),d.push({type:2,index:++l});r.append(t[i],c());}}}else if(8===r.nodeType)if(r.data===n$1)d.push({type:2,index:l});else {let t=-1;for(;-1!==(t=r.data.indexOf(o$2,t+1));)d.push({type:7,index:l}),t+=o$2.length-1;}l++;}}static createElement(t,i){const s=l.createElement("template");return s.innerHTML=t,s}}function M(t,i,s=t,e){if(i===E)return i;let h=void 0!==e?s._$Co?.[e]:s._$Cl;const o=a(i)?void 0:i._$litDirective$;return h?.constructor!==o&&(h?._$AO?.(false),void 0===o?h=void 0:(h=new o(t),h._$AT(t,s,e)),void 0!==e?(s._$Co??=[])[e]=h:s._$Cl=h),void 0!==h&&(i=M(t,h._$AS(t,i.values),h,e)),i}class R{constructor(t,i){this._$AV=[],this._$AN=void 0,this._$AD=t,this._$AM=i;}get parentNode(){return this._$AM.parentNode}get _$AU(){return this._$AM._$AU}u(t){const{el:{content:i},parts:s}=this._$AD,e=(t?.creationScope??l).importNode(i,true);P.currentNode=e;let h=P.nextNode(),o=0,n=0,r=s[0];for(;void 0!==r;){if(o===r.index){let i;2===r.type?i=new k(h,h.nextSibling,this,t):1===r.type?i=new r.ctor(h,r.name,r.strings,this,t):6===r.type&&(i=new Z(h,this,t)),this._$AV.push(i),r=s[++n];}o!==r?.index&&(h=P.nextNode(),o++);}return P.currentNode=l,e}p(t){let i=0;for(const s of this._$AV) void 0!==s&&(void 0!==s.strings?(s._$AI(t,s,i),i+=s.strings.length-2):s._$AI(t[i])),i++;}}class k{get _$AU(){return this._$AM?._$AU??this._$Cv}constructor(t,i,s,e){this.type=2,this._$AH=A,this._$AN=void 0,this._$AA=t,this._$AB=i,this._$AM=s,this.options=e,this._$Cv=e?.isConnected??true;}get parentNode(){let t=this._$AA.parentNode;const i=this._$AM;return void 0!==i&&11===t?.nodeType&&(t=i.parentNode),t}get startNode(){return this._$AA}get endNode(){return this._$AB}_$AI(t,i=this){t=M(this,t,i),a(t)?t===A||null==t||""===t?(this._$AH!==A&&this._$AR(),this._$AH=A):t!==this._$AH&&t!==E&&this._(t):void 0!==t._$litType$?this.$(t):void 0!==t.nodeType?this.T(t):d(t)?this.k(t):this._(t);}O(t){return this._$AA.parentNode.insertBefore(t,this._$AB)}T(t){this._$AH!==t&&(this._$AR(),this._$AH=this.O(t));}_(t){this._$AH!==A&&a(this._$AH)?this._$AA.nextSibling.data=t:this.T(l.createTextNode(t)),this._$AH=t;}$(t){const{values:i,_$litType$:s}=t,e="number"==typeof s?this._$AC(t):(void 0===s.el&&(s.el=S.createElement(V(s.h,s.h[0]),this.options)),s);if(this._$AH?._$AD===e)this._$AH.p(i);else {const t=new R(e,this),s=t.u(this.options);t.p(i),this.T(s),this._$AH=t;}}_$AC(t){let i=C.get(t.strings);return void 0===i&&C.set(t.strings,i=new S(t)),i}k(t){u(this._$AH)||(this._$AH=[],this._$AR());const i=this._$AH;let s,e=0;for(const h of t)e===i.length?i.push(s=new k(this.O(c()),this.O(c()),this,this.options)):s=i[e],s._$AI(h),e++;e<i.length&&(this._$AR(s&&s._$AB.nextSibling,e),i.length=e);}_$AR(t=this._$AA.nextSibling,s){for(this._$AP?.(false,true,s);t!==this._$AB;){const s=i$1(t).nextSibling;i$1(t).remove(),t=s;}}setConnected(t){ void 0===this._$AM&&(this._$Cv=t,this._$AP?.(t));}}class H{get tagName(){return this.element.tagName}get _$AU(){return this._$AM._$AU}constructor(t,i,s,e,h){this.type=1,this._$AH=A,this._$AN=void 0,this.element=t,this.name=i,this._$AM=e,this.options=h,s.length>2||""!==s[0]||""!==s[1]?(this._$AH=Array(s.length-1).fill(new String),this.strings=s):this._$AH=A;}_$AI(t,i=this,s,e){const h=this.strings;let o=false;if(void 0===h)t=M(this,t,i,0),o=!a(t)||t!==this._$AH&&t!==E,o&&(this._$AH=t);else {const e=t;let n,r;for(t=h[0],n=0;n<h.length-1;n++)r=M(this,e[s+n],i,n),r===E&&(r=this._$AH[n]),o||=!a(r)||r!==this._$AH[n],r===A?t=A:t!==A&&(t+=(r??"")+h[n+1]),this._$AH[n]=r;}o&&!e&&this.j(t);}j(t){t===A?this.element.removeAttribute(this.name):this.element.setAttribute(this.name,t??"");}}class I extends H{constructor(){super(...arguments),this.type=3;}j(t){this.element[this.name]=t===A?void 0:t;}}class L extends H{constructor(){super(...arguments),this.type=4;}j(t){this.element.toggleAttribute(this.name,!!t&&t!==A);}}class z extends H{constructor(t,i,s,e,h){super(t,i,s,e,h),this.type=5;}_$AI(t,i=this){if((t=M(this,t,i,0)??A)===E)return;const s=this._$AH,e=t===A&&s!==A||t.capture!==s.capture||t.once!==s.once||t.passive!==s.passive,h=t!==A&&(s===A||e);e&&this.element.removeEventListener(this.name,this,s),h&&this.element.addEventListener(this.name,this,t),this._$AH=t;}handleEvent(t){"function"==typeof this._$AH?this._$AH.call(this.options?.host??this.element,t):this._$AH.handleEvent(t);}}class Z{constructor(t,i,s){this.element=t,this.type=6,this._$AN=void 0,this._$AM=i,this.options=s;}get _$AU(){return this._$AM._$AU}_$AI(t){M(this,t);}}const B=t$1.litHtmlPolyfillSupport;B?.(S,k),(t$1.litHtmlVersions??=[]).push("3.3.3");const D=(t,i,s)=>{const e=s?.renderBefore??i;let h=e._$litPart$;if(void 0===h){const t=s?.renderBefore??null;e._$litPart$=h=new k(i.insertBefore(c(),t),t,void 0,s??{});}return h._$AI(t),h};
+const t$1=globalThis,i$1=t=>t,s$1=t$1.trustedTypes,e=s$1?s$1.createPolicy("lit-html",{createHTML:t=>t}):void 0,h="$lit$",o$2=`lit$${Math.random().toFixed(9).slice(2)}$`,n$1="?"+o$2,r$2=`<${n$1}>`,l=document,c=()=>l.createComment(""),a=t=>null===t||"object"!=typeof t&&"function"!=typeof t,u=Array.isArray,d=t=>u(t)||"function"==typeof t?.[Symbol.iterator],f="[ \t\n\f\r]",v=/<(?:(!--|\/[^a-zA-Z])|(\/?[a-zA-Z][^>\s]*)|(\/?$))/g,_=/-->/g,m=/>/g,p=RegExp(`>|${f}(?:([^\\s"'>=/]+)(${f}*=${f}*(?:[^ \t\n\f\r"'\`<>=]|("|')|))|$)`,"g"),g=/'/g,$=/"/g,y=/^(?:script|style|textarea|title)$/i,x=t=>(i,...s)=>({_$litType$:t,strings:i,values:s}),b=x(1),w=x(2),E=Symbol.for("lit-noChange"),A=Symbol.for("lit-nothing"),C=new WeakMap,P=l.createTreeWalker(l,129);function V(t,i){if(!u(t)||!t.hasOwnProperty("raw"))throw Error("invalid template strings array");return void 0!==e?e.createHTML(i):i}const N=(t,i)=>{const s=t.length-1,e=[];let n,l=2===i?"<svg>":3===i?"<math>":"",c=v;for(let i=0;i<s;i++){const s=t[i];let a,u,d=-1,f=0;for(;f<s.length&&(c.lastIndex=f,u=c.exec(s),null!==u);)f=c.lastIndex,c===v?"!--"===u[1]?c=_:void 0!==u[1]?c=m:void 0!==u[2]?(y.test(u[2])&&(n=RegExp("</"+u[2],"g")),c=p):void 0!==u[3]&&(c=p):c===p?">"===u[0]?(c=n??v,d=-1):void 0===u[1]?d=-2:(d=c.lastIndex-u[2].length,a=u[1],c=void 0===u[3]?p:'"'===u[3]?$:g):c===$||c===g?c=p:c===_||c===m?c=v:(c=p,n=void 0);const x=c===p&&t[i+1].startsWith("/>")?" ":"";l+=c===v?s+r$2:d>=0?(e.push(a),s.slice(0,d)+h+s.slice(d)+o$2+x):s+o$2+(-2===d?i:x);}return [V(t,l+(t[s]||"<?>")+(2===i?"</svg>":3===i?"</math>":"")),e]};class S{constructor({strings:t,_$litType$:i},e){let r;this.parts=[];let l=0,a=0;const u=t.length-1,d=this.parts,[f,v]=N(t,i);if(this.el=S.createElement(f,e),P.currentNode=this.el.content,2===i||3===i){const t=this.el.content.firstChild;t.replaceWith(...t.childNodes);}for(;null!==(r=P.nextNode())&&d.length<u;){if(1===r.nodeType){if(r.hasAttributes())for(const t of r.getAttributeNames())if(t.endsWith(h)){const i=v[a++],s=r.getAttribute(t).split(o$2),e=/([.?@])?(.*)/.exec(i);d.push({type:1,index:l,name:e[2],strings:s,ctor:"."===e[1]?I:"?"===e[1]?L:"@"===e[1]?z:H$1}),r.removeAttribute(t);}else t.startsWith(o$2)&&(d.push({type:6,index:l}),r.removeAttribute(t));if(y.test(r.tagName)){const t=r.textContent.split(o$2),i=t.length-1;if(i>0){r.textContent=s$1?s$1.emptyScript:"";for(let s=0;s<i;s++)r.append(t[s],c()),P.nextNode(),d.push({type:2,index:++l});r.append(t[i],c());}}}else if(8===r.nodeType)if(r.data===n$1)d.push({type:2,index:l});else {let t=-1;for(;-1!==(t=r.data.indexOf(o$2,t+1));)d.push({type:7,index:l}),t+=o$2.length-1;}l++;}}static createElement(t,i){const s=l.createElement("template");return s.innerHTML=t,s}}function M(t,i,s=t,e){if(i===E)return i;let h=void 0!==e?s._$Co?.[e]:s._$Cl;const o=a(i)?void 0:i._$litDirective$;return h?.constructor!==o&&(h?._$AO?.(false),void 0===o?h=void 0:(h=new o(t),h._$AT(t,s,e)),void 0!==e?(s._$Co??=[])[e]=h:s._$Cl=h),void 0!==h&&(i=M(t,h._$AS(t,i.values),h,e)),i}class R{constructor(t,i){this._$AV=[],this._$AN=void 0,this._$AD=t,this._$AM=i;}get parentNode(){return this._$AM.parentNode}get _$AU(){return this._$AM._$AU}u(t){const{el:{content:i},parts:s}=this._$AD,e=(t?.creationScope??l).importNode(i,true);P.currentNode=e;let h=P.nextNode(),o=0,n=0,r=s[0];for(;void 0!==r;){if(o===r.index){let i;2===r.type?i=new k(h,h.nextSibling,this,t):1===r.type?i=new r.ctor(h,r.name,r.strings,this,t):6===r.type&&(i=new Z(h,this,t)),this._$AV.push(i),r=s[++n];}o!==r?.index&&(h=P.nextNode(),o++);}return P.currentNode=l,e}p(t){let i=0;for(const s of this._$AV) void 0!==s&&(void 0!==s.strings?(s._$AI(t,s,i),i+=s.strings.length-2):s._$AI(t[i])),i++;}}class k{get _$AU(){return this._$AM?._$AU??this._$Cv}constructor(t,i,s,e){this.type=2,this._$AH=A,this._$AN=void 0,this._$AA=t,this._$AB=i,this._$AM=s,this.options=e,this._$Cv=e?.isConnected??true;}get parentNode(){let t=this._$AA.parentNode;const i=this._$AM;return void 0!==i&&11===t?.nodeType&&(t=i.parentNode),t}get startNode(){return this._$AA}get endNode(){return this._$AB}_$AI(t,i=this){t=M(this,t,i),a(t)?t===A||null==t||""===t?(this._$AH!==A&&this._$AR(),this._$AH=A):t!==this._$AH&&t!==E&&this._(t):void 0!==t._$litType$?this.$(t):void 0!==t.nodeType?this.T(t):d(t)?this.k(t):this._(t);}O(t){return this._$AA.parentNode.insertBefore(t,this._$AB)}T(t){this._$AH!==t&&(this._$AR(),this._$AH=this.O(t));}_(t){this._$AH!==A&&a(this._$AH)?this._$AA.nextSibling.data=t:this.T(l.createTextNode(t)),this._$AH=t;}$(t){const{values:i,_$litType$:s}=t,e="number"==typeof s?this._$AC(t):(void 0===s.el&&(s.el=S.createElement(V(s.h,s.h[0]),this.options)),s);if(this._$AH?._$AD===e)this._$AH.p(i);else {const t=new R(e,this),s=t.u(this.options);t.p(i),this.T(s),this._$AH=t;}}_$AC(t){let i=C.get(t.strings);return void 0===i&&C.set(t.strings,i=new S(t)),i}k(t){u(this._$AH)||(this._$AH=[],this._$AR());const i=this._$AH;let s,e=0;for(const h of t)e===i.length?i.push(s=new k(this.O(c()),this.O(c()),this,this.options)):s=i[e],s._$AI(h),e++;e<i.length&&(this._$AR(s&&s._$AB.nextSibling,e),i.length=e);}_$AR(t=this._$AA.nextSibling,s){for(this._$AP?.(false,true,s);t!==this._$AB;){const s=i$1(t).nextSibling;i$1(t).remove(),t=s;}}setConnected(t){ void 0===this._$AM&&(this._$Cv=t,this._$AP?.(t));}}let H$1 = class H{get tagName(){return this.element.tagName}get _$AU(){return this._$AM._$AU}constructor(t,i,s,e,h){this.type=1,this._$AH=A,this._$AN=void 0,this.element=t,this.name=i,this._$AM=e,this.options=h,s.length>2||""!==s[0]||""!==s[1]?(this._$AH=Array(s.length-1).fill(new String),this.strings=s):this._$AH=A;}_$AI(t,i=this,s,e){const h=this.strings;let o=false;if(void 0===h)t=M(this,t,i,0),o=!a(t)||t!==this._$AH&&t!==E,o&&(this._$AH=t);else {const e=t;let n,r;for(t=h[0],n=0;n<h.length-1;n++)r=M(this,e[s+n],i,n),r===E&&(r=this._$AH[n]),o||=!a(r)||r!==this._$AH[n],r===A?t=A:t!==A&&(t+=(r??"")+h[n+1]),this._$AH[n]=r;}o&&!e&&this.j(t);}j(t){t===A?this.element.removeAttribute(this.name):this.element.setAttribute(this.name,t??"");}};class I extends H$1{constructor(){super(...arguments),this.type=3;}j(t){this.element[this.name]=t===A?void 0:t;}}class L extends H$1{constructor(){super(...arguments),this.type=4;}j(t){this.element.toggleAttribute(this.name,!!t&&t!==A);}}class z extends H$1{constructor(t,i,s,e,h){super(t,i,s,e,h),this.type=5;}_$AI(t,i=this){if((t=M(this,t,i,0)??A)===E)return;const s=this._$AH,e=t===A&&s!==A||t.capture!==s.capture||t.once!==s.once||t.passive!==s.passive,h=t!==A&&(s===A||e);e&&this.element.removeEventListener(this.name,this,s),h&&this.element.addEventListener(this.name,this,t),this._$AH=t;}handleEvent(t){"function"==typeof this._$AH?this._$AH.call(this.options?.host??this.element,t):this._$AH.handleEvent(t);}}class Z{constructor(t,i,s){this.element=t,this.type=6,this._$AN=void 0,this._$AM=i,this.options=s;}get _$AU(){return this._$AM._$AU}_$AI(t){M(this,t);}}const B=t$1.litHtmlPolyfillSupport;B?.(S,k),(t$1.litHtmlVersions??=[]).push("3.3.3");const D=(t,i,s)=>{const e=s?.renderBefore??i;let h=e._$litPart$;if(void 0===h){const t=s?.renderBefore??null;e._$litPart$=h=new k(i.insertBefore(c(),t),t,void 0,s??{});}return h._$AI(t),h};
 
 /**
  * @license
@@ -593,9 +593,313 @@ const styles = i$3 `
     outline: 2px solid var(--primary-color);
     outline-offset: 2px;
   }
+  /* Outside: weather and sensors at the top of the card. */
+  .outside {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .weather {
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    align-items: center;
+    gap: 12px;
+    width: 100%;
+    padding: 10px 14px 10px 10px;
+    border: 0;
+    border-radius: var(--hs-radius);
+    font: inherit;
+    text-align: left;
+    color: var(--hs-text);
+    background: var(--hs-pill);
+    cursor: pointer;
+  }
+  .weather.missing {
+    display: block;
+    font-size: 14px;
+    color: var(--hs-muted);
+  }
+  .wx-icon {
+    display: grid;
+    place-items: center;
+    color: var(--wx, var(--hs-muted));
+  }
+  .wx-sun {
+    --wx: var(--amber-color, #f59e0b);
+  }
+  .wx-storm {
+    --wx: var(--amber-color, #f59e0b);
+  }
+  .wx-rain {
+    --wx: var(--blue-color, #3b82f6);
+  }
+  .wx-snow {
+    --wx: var(--light-blue-color, #38bdf8);
+  }
+  .wx-night {
+    --wx: var(--indigo-color, #6366f1);
+  }
+  .wx-alert {
+    --wx: var(--hs-error);
+  }
+  .weather .i.wx {
+    width: 44px;
+    height: 44px;
+    stroke-width: 1.6;
+  }
+  .wx-text,
+  .wx-temps {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+  }
+  .wx-temps {
+    align-items: flex-end;
+    text-align: right;
+  }
+  .wx-condition {
+    font-size: 20px;
+    font-weight: 700;
+    overflow-wrap: anywhere;
+  }
+  .wx-place,
+  .wx-range {
+    font-size: 13px;
+    color: var(--hs-muted);
+    font-variant-numeric: tabular-nums;
+  }
+  .wx-now {
+    font-size: 22px;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+  }
+  .forecast {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(52px, 1fr));
+    gap: 4px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+  .day {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    font-size: 13px;
+    font-variant-numeric: tabular-nums;
+  }
+  .day-name,
+  .day-low {
+    color: var(--hs-muted);
+  }
+  .day-high {
+    font-weight: 600;
+  }
+  .sensors {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(96px, 1fr));
+    gap: 8px;
+  }
+  .sensor {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+    min-height: 44px;
+    padding: 10px 8px;
+    border: 0;
+    border-radius: var(--hs-tile);
+    font: inherit;
+    color: var(--hs-text);
+    background: var(--hs-pill);
+    cursor: pointer;
+  }
+  .sensor-icon {
+    position: relative;
+    display: grid;
+    place-items: center;
+    min-height: 24px;
+    color: var(--state-icon-color, var(--hs-muted));
+  }
+  .badge {
+    position: absolute;
+    top: -6px;
+    right: -12px;
+    width: 16px;
+    height: 16px;
+    display: grid;
+    place-items: center;
+    border-radius: 50%;
+    font-size: 11px;
+    font-weight: 800;
+    color: #fff;
+    background: var(--hs-vacation);
+  }
+  .sensor-name {
+    font-size: 14px;
+    font-weight: 700;
+    overflow-wrap: anywhere;
+  }
+  .sensor-value {
+    font-size: 13px;
+    color: var(--hs-muted);
+    font-variant-numeric: tabular-nums;
+  }
+  /* History: one chart of the card's readings. */
+  .series-0 {
+    --series: var(--hs-neutral);
+  }
+  .series-1 {
+    --series: var(--hs-away);
+  }
+  .series-2 {
+    --series: var(--hs-home);
+  }
+  .series-3 {
+    --series: var(--purple-color, #8e44ad);
+  }
+  .series-4 {
+    --series: var(--hs-vacation);
+  }
+  dialog {
+    color: var(--hs-text);
+    background: var(--hs-surface);
+    border: 0;
+    border-radius: 24px;
+    padding: 16px;
+    width: min(640px, calc(100vw - 24px));
+    max-width: calc(100vw - 24px);
+    max-height: calc(100dvh - 32px);
+    overflow: auto;
+    box-shadow: 0 16px 60px #0006;
+  }
+  :host([data-appearance="bubble"]) dialog {
+    border-radius: var(--bubble-border-radius, 32px);
+  }
+  dialog[open] {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+  dialog::backdrop {
+    background: #0008;
+  }
+  .dialog-top {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding-left: 8px;
+  }
+  .dialog-title {
+    flex: 1;
+    margin: 0;
+    font-size: 17px;
+    font-weight: 700;
+    color: var(--hs-muted);
+  }
+  .subtitle {
+    display: block;
+    font-size: 13px;
+    font-weight: 500;
+  }
+  button.icon {
+    border: 0;
+    padding: 0;
+    cursor: pointer;
+  }
+  .history-ranges {
+    display: flex;
+    gap: 6px;
+  }
+  .history-ranges .chip {
+    min-height: 44px;
+    padding: 0 16px;
+  }
+  .history-plot {
+    min-height: 120px;
+    touch-action: pan-y;
+  }
+  .history-chart {
+    display: block;
+    width: 100%;
+    height: auto;
+  }
+  .history-chart .grid {
+    stroke: color-mix(in srgb, var(--hs-muted) 22%, transparent);
+  }
+  .history-chart .axis {
+    fill: var(--hs-muted);
+    font-size: 12px;
+    font-variant-numeric: tabular-nums;
+  }
+  .history-chart .line {
+    fill: none;
+    stroke: var(--series);
+    stroke-width: 2;
+    stroke-linejoin: round;
+  }
+  .history-chart .cursor {
+    stroke: var(--hs-muted);
+    stroke-dasharray: 3 3;
+  }
+  .history-note {
+    margin: 40px 0;
+    text-align: center;
+    font-size: 14px;
+    color: var(--hs-muted);
+  }
+  .history-when {
+    margin: -6px 8px 0;
+    font-size: 12.5px;
+    color: var(--hs-muted);
+    font-variant-numeric: tabular-nums;
+  }
+  .history-legend {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(150px, 100%), 1fr));
+    gap: 6px;
+  }
+  .history-item {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    align-items: center;
+    gap: 2px 10px;
+    min-height: 44px;
+    padding: 8px 14px;
+    border: 0;
+    border-radius: var(--hs-tile);
+    font: inherit;
+    color: var(--hs-text);
+    background: var(--hs-pill);
+    text-align: left;
+    cursor: pointer;
+  }
+  .history-item .swatch {
+    grid-row: span 2;
+    width: 16px;
+    height: 0;
+    border-top: 3px solid var(--series);
+  }
+  .history-item .label {
+    font-size: 0.78rem;
+    color: var(--hs-muted);
+    overflow-wrap: anywhere;
+  }
+  .history-item strong {
+    font-size: 1rem;
+    font-variant-numeric: tabular-nums;
+  }
   @media (max-width: 400px) {
     ha-card {
       padding: 12px;
+    }
+    dialog {
+      padding: 12px;
+    }
+    .wx-condition {
+      font-size: 17px;
     }
     .current {
       font-size: 26px;
@@ -649,6 +953,39 @@ const en = {
     entityLabel: "House State entity",
     showOverlay: "Show overlay",
     confirmVacation: "Confirm vacation",
+    showSettings: "Show settings button",
+    weatherLabel: "Weather",
+    showForecast: "Show forecast",
+    sensorsLabel: "Sensors",
+    forecast: "Forecast",
+    highLow: "High {high}, low {low}",
+    unavailable: "Unavailable",
+    unknown: "Unknown",
+    history: "History",
+    showHistory: "Show history",
+    closeHistory: "Close history",
+    historyRanges: "History ranges",
+    loadingHistory: "Loading history…",
+    noHistory: "No history for this period.",
+    historyFailed: "Could not load history",
+    now: "Now",
+    conditions: {
+        "clear-night": "Clear night",
+        cloudy: "Cloudy",
+        exceptional: "Exceptional",
+        fog: "Fog",
+        hail: "Hail",
+        lightning: "Lightning",
+        "lightning-rainy": "Lightning and rain",
+        partlycloudy: "Partly cloudy",
+        pouring: "Pouring",
+        rainy: "Rainy",
+        snowy: "Snowy",
+        "snowy-rainy": "Sleet",
+        sunny: "Sunny",
+        windy: "Windy",
+        "windy-variant": "Windy and cloudy",
+    },
     errorPrefix: "Could not update house state",
     entityRequired: "You must define an entity",
     durationDay: "d",
@@ -715,6 +1052,39 @@ const nb = {
     entityLabel: "Hustilstandsentitet",
     showOverlay: "Vis overlegg",
     confirmVacation: "Bekreft ferie",
+    showSettings: "Vis innstillingsknapp",
+    weatherLabel: "Vær",
+    showForecast: "Vis værvarsel",
+    sensorsLabel: "Sensorer",
+    forecast: "Værvarsel",
+    highLow: "Høyest {high}, lavest {low}",
+    unavailable: "Utilgjengelig",
+    unknown: "Ukjent",
+    history: "Historikk",
+    showHistory: "Vis historikk",
+    closeHistory: "Lukk historikk",
+    historyRanges: "Tidsrom",
+    loadingHistory: "Henter historikk …",
+    noHistory: "Ingen historikk for denne perioden.",
+    historyFailed: "Kunne ikke hente historikk",
+    now: "Nå",
+    conditions: {
+        "clear-night": "Klar natt",
+        cloudy: "Skyet",
+        exceptional: "Uvanlig vær",
+        fog: "Tåke",
+        hail: "Hagl",
+        lightning: "Torden",
+        "lightning-rainy": "Torden og regn",
+        partlycloudy: "Delvis skyet",
+        pouring: "Styrtregn",
+        rainy: "Regn",
+        snowy: "Snø",
+        "snowy-rainy": "Sludd",
+        sunny: "Sol",
+        windy: "Vind",
+        "windy-variant": "Vind og skyer",
+    },
     errorPrefix: "Kunne ikke oppdatere hustilstanden",
     entityRequired: "Du må angi en entitet",
     durationDay: "d",
@@ -782,6 +1152,18 @@ const paths = {
     key: w `<circle cx="7.5" cy="15.5" r="4.5"></circle><path d="M10.7 12.3 21 2M16 7l3 3"></path>`,
     chevron: w `<path d="m6 9 6 6 6-6"></path>`,
     cog: w `<circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path>`,
+    "wx-sun": w `<circle cx="12" cy="12" r="4"></circle><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"></path>`,
+    "wx-night": w `<path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"></path>`,
+    "wx-cloud": w `<path d="M17.5 19H9a7 7 0 1 1 6.7-9h1.8a4.5 4.5 0 1 1 0 9z"></path>`,
+    "wx-partly": w `<path d="M12 2v2M4.9 4.9l1.4 1.4M20 12h2M19.1 4.9l-1.4 1.4M15.9 12.7a4 4 0 0 0-5.9-4.1"></path><path d="M13 22H7a5 5 0 1 1 4.9-6H13a3 3 0 0 1 0 6z"></path>`,
+    "wx-rain": w `<path d="M4 14.9A7 7 0 1 1 15.7 8h1.8a4.5 4.5 0 0 1 2.5 8.24"></path><path d="M16 14v6M8 14v6M12 16v6"></path>`,
+    "wx-snow": w `<path d="M4 14.9A7 7 0 1 1 15.7 8h1.8a4.5 4.5 0 0 1 2.5 8.24"></path><path d="M8 15h.01M8 19h.01M12 17h.01M12 21h.01M16 15h.01M16 19h.01"></path>`,
+    "wx-hail": w `<path d="M4 14.9A7 7 0 1 1 15.7 8h1.8a4.5 4.5 0 0 1 2.5 8.24"></path><path d="M16 14v2M8 14v2M12 16v2M16 20h.01M8 20h.01M12 22h.01"></path>`,
+    "wx-lightning": w `<path d="M6 16.3A7 7 0 1 1 15.7 8h1.8a4.5 4.5 0 0 1 .5 8.97"></path><path d="m13 12-3 5h4l-3 5"></path>`,
+    "wx-fog": w `<path d="M4 14.9A7 7 0 1 1 15.7 8h1.8a4.5 4.5 0 0 1 2.5 8.24"></path><path d="M16 17H7M17 21H9"></path>`,
+    "wx-wind": w `<path d="M12.8 19.6A2 2 0 1 0 14 16H2M17.5 8a2.5 2.5 0 1 1 2 4H2M9.8 4.4A2 2 0 1 1 11 8H2"></path>`,
+    history: w `<path d="M3 3v5h5"></path><path d="M3.05 13A9 9 0 1 0 6 5.3L3 8"></path><path d="M12 7v5l4 2"></path>`,
+    close: w `<path d="M18 6 6 18M6 6l12 12"></path>`,
 };
 const STATES = new Set([
     "home",
@@ -799,6 +1181,293 @@ const hasIcon = (id) => STATES.has(id);
 const icon = (name, extra = "") => paths[name]
     ? b `<svg class="i ${extra}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${paths[name]}</svg>`
     : null;
+
+const RANGES = [6, 24, 168];
+const PALETTE = 5;
+const isTemperature = (unit) => ["°C", "°F", "K"].includes(unit);
+function numeric(state) {
+    if (["unavailable", "unknown", ""].includes(state))
+        return undefined;
+    const value = Number(state);
+    return Number.isFinite(value) ? value : undefined;
+}
+const unitOf = (state) => String(state?.attributes.unit_of_measurement ?? "");
+/**
+ * A sensor tile opens the history when it is a numeric measurement; a
+ * timestamp, duration or enum adds nothing drawn as a line.
+ */
+function hasHistory(state) {
+    if (!state || !state.entity_id.startsWith("sensor."))
+        return false;
+    const attributes = state.attributes;
+    if (["duration", "timestamp", "date", "enum"].includes(attributes.device_class))
+        return false;
+    if (!attributes.unit_of_measurement && !attributes.state_class)
+        return false;
+    return (["unavailable", "unknown"].includes(state.state) ||
+        numeric(state.state) !== undefined);
+}
+/**
+ * What one chart draws: the tapped reading first, the card's other readings
+ * in its unit, and those in one more unit on a second scale. A third unit
+ * would need a third scale, so it is left out.
+ */
+function historySources(sensors, tapped, states) {
+    const readings = [
+        tapped,
+        ...sensors.filter((id) => id !== tapped && hasHistory(states[id])),
+    ];
+    const first = unitOf(states[tapped]);
+    const second = readings
+        .map((id) => unitOf(states[id]))
+        .find((unit) => unit !== first);
+    return readings
+        .filter((id) => [first, second].includes(unitOf(states[id])))
+        .map((entityId, i) => ({ entityId, color: i % PALETTE }));
+}
+/**
+ * The history of each source over the last `hours`, from Home Assistant's
+ * recorder, ending with the current state.
+ */
+async function loadHistory(connection, sources, states, hours, now = Date.now()) {
+    const start = now - hours * 3600000;
+    const reply = sources.length
+        ? await connection.sendMessagePromise({
+            type: "history/history_during_period",
+            start_time: new Date(start).toISOString(),
+            entity_ids: sources.map((s) => s.entityId),
+            minimal_response: true,
+            no_attributes: true,
+            significant_changes_only: false,
+        })
+        : {};
+    return sources.map((source) => {
+        const current = states[source.entityId];
+        const points = (reply?.[source.entityId] ?? []).map((row) => [
+            Math.max(start, (row.lu ?? row.lc ?? 0) * 1000),
+            numeric(row.s),
+        ]);
+        if (current)
+            points.push([now, numeric(current.state)]);
+        return { ...source, unit: unitOf(current), points };
+    });
+}
+/** The value in force at `time`: the last point at or before it. */
+function valueAt(series, time) {
+    let value;
+    for (const [t, v] of series.points) {
+        if (t > time)
+            break;
+        value = v;
+    }
+    return value;
+}
+/** Round-number ticks covering [min, max], about `count` of them. */
+function ticks(min, max, count = 4) {
+    const raw = (max - min) / count || 1;
+    const power = 10 ** Math.floor(Math.log10(raw));
+    const step = [1, 2, 2.5, 5, 10].map((m) => m * power).find((s) => s >= raw) ??
+        10 * power;
+    const out = [];
+    for (let v = Math.floor(min / step) * step;; v += step) {
+        out.push(Number(v.toFixed(6)));
+        if (v >= max - 1e-9)
+            break;
+    }
+    return out;
+}
+
+const LEFT = 44, TOP = 24, BOTTOM = 196, H = 230, 
+/** Room right of the plot for the second scale. */
+GUTTER = 44;
+/** Unbroken spells of a series, split where it was unavailable. */
+function runs(points) {
+    const out = [];
+    let current = [];
+    for (const [t, v] of points) {
+        if (v === undefined) {
+            if (current.length)
+                out.push(current);
+            current = [];
+        }
+        else
+            current.push([t, v]);
+    }
+    if (current.length)
+        out.push(current);
+    return out;
+}
+function scale(series, pad) {
+    const values = series.flatMap((s) => s.points.flatMap(([, v]) => (v === undefined ? [] : [v])));
+    if (!values.length)
+        return undefined;
+    const lo = Math.min(...values), hi = Math.max(...values);
+    const marks = ticks(lo - pad, hi + pad);
+    return { marks, min: marks[0], max: marks[marks.length - 1] };
+}
+/** The left unit is the tapped reading's; a reading in another unit goes right. */
+function units(series) {
+    const left = series[0]?.unit ?? "";
+    return [left, series.find((s) => s.unit !== left)?.unit];
+}
+/**
+ * One chart of the card's readings: the tapped reading's unit on the left, a
+ * right-hand scale for another unit. Unavailable spells are gaps.
+ */
+function chart(series, start, end, hover, text, W = 600) {
+    const [leftUnit, rightUnit] = units(series);
+    const RIGHT = W - (rightUnit === undefined ? 12 : GUTTER);
+    const left = series.filter((s) => s.unit === leftUnit);
+    const right = rightUnit === undefined ? [] : series.filter((s) => s.unit === rightUnit);
+    const pad = (list, unit) => isTemperature(unit)
+        ? 1
+        : list.some((s) => s.points.some(([, v]) => v !== undefined && Math.abs(v) >= 10))
+            ? 1
+            : 0.1;
+    const l = scale(left, pad(left, leftUnit)), r = scale(right, pad(right, rightUnit ?? ""));
+    const x = (t) => LEFT +
+        ((Math.min(Math.max(t, start), end) - start) / (end - start)) *
+            (RIGHT - LEFT);
+    const y = (v, s) => BOTTOM - ((v - s.min) / (s.max - s.min || 1)) * (BOTTOM - TOP);
+    const hours = (end - start) / 3600000;
+    const narrow = W < 480;
+    const every = hours <= 6
+        ? narrow
+            ? 2
+            : 1
+        : hours <= 24
+            ? narrow
+                ? 6
+                : 4
+            : narrow
+                ? 48
+                : 24;
+    const xTicks = [];
+    const hour = new Date(start);
+    hour.setMinutes(0, 0, 0);
+    let midnights = 0;
+    for (let t = hour.getTime(); t <= end; t += 3600000) {
+        const h = new Date(t).getHours();
+        if (t < start)
+            continue;
+        if (every >= 24
+            ? h === 0 && midnights++ % (every / 24) === 0
+            : h % every === 0)
+            xTicks.push(t);
+    }
+    const path = (s, sc) => runs(s.points)
+        .map((run) => run
+        .map(([t, v], i) => `${i ? "L" : "M"}${x(t).toFixed(1)},${y(v, sc).toFixed(1)}`)
+        .join(" "))
+        .join(" ");
+    // As many decimals as the tick steps need (2.5 steps show 57.5, not 58).
+    const digits = (sc) => Math.min(2, Math.max(...sc.marks.map((v) => String(v).split(".")[1]?.length ?? 0)));
+    const line = (s, sc) => w `<path class=${`line series-${s.color}`} data-entity=${s.entityId} d=${path(s, sc)}></path>`;
+    const grid = l ?? r;
+    return w `<svg class="history-chart" viewBox="0 0 ${W} ${H}" role="img" aria-label=${text.label}>
+    <title>${text.label}</title>
+    ${grid?.marks.map((v) => w `<line class="grid" x1=${LEFT} x2=${RIGHT} y1=${y(v, grid)} y2=${y(v, grid)}></line>`)}
+    ${l
+        ? l.marks.map((v) => w `<text class="axis" x=${LEFT - 6} y=${y(v, l) + 4} text-anchor="end">${text.number(v, digits(l))}</text>`)
+        : A}
+    ${l && leftUnit
+        ? w `<text class="axis unit" x="4" y="12">${leftUnit}</text>`
+        : A}
+    ${r
+        ? r.marks.map((v) => w `<text class="axis" x=${RIGHT + 6} y=${y(v, r) + 4}>${text.number(v, digits(r))}</text>`)
+        : A}
+    ${r && rightUnit
+        ? w `<text class="axis unit" x=${W - 4} y="12" text-anchor="end">${rightUnit}</text>`
+        : A}
+    ${xTicks.map((t) => w `<line class="grid" x1=${x(t)} x2=${x(t)} y1=${TOP} y2=${BOTTOM}></line>
+        <text class="axis" x=${x(t)} y=${BOTTOM + 18} text-anchor="middle">${text.time(t, every >= 24)}</text>`)}
+    ${l ? left.map((s) => line(s, l)) : A}
+    ${r ? right.map((s) => line(s, r)) : A}
+    ${hover === undefined
+        ? A
+        : w `<line class="cursor" x1=${x(hover)} x2=${x(hover)} y1=${TOP} y2=${BOTTOM}></line>`}
+  </svg>`;
+}
+/** The time under a pointer over the chart. */
+function timeAt(event, element, start, end, twoScales) {
+    const box = element.getBoundingClientRect();
+    const W = element.viewBox?.baseVal?.width || box.width;
+    const px = ((event.clientX - box.left) / box.width) * W;
+    const ratio = (px - LEFT) / (W - (twoScales ? GUTTER : 12) - LEFT);
+    return start + Math.min(1, Math.max(0, ratio)) * (end - start);
+}
+
+/** WeatherEntityFeature: which forecasts a weather entity offers. */
+const DAILY = 1, TWICE_DAILY = 4;
+/** The forecast to subscribe to: daily when offered, else day and night. */
+function forecastType(state) {
+    const features = Number(state?.attributes.supported_features) || 0;
+    if (features & DAILY)
+        return "daily";
+    if (features & TWICE_DAILY)
+        return "twice_daily";
+    return undefined;
+}
+const dayKey = (date) => `${date.getFullYear()}-${date.getMonth()}-${date.getDate()}`;
+/**
+ * Forecast entries folded into local calendar days: the day's high, its low,
+ * and the daytime condition. Works for daily and twice-daily forecasts.
+ */
+function forecastDays(entries) {
+    const days = new Map();
+    for (const entry of entries) {
+        const date = new Date(entry.datetime);
+        if (Number.isNaN(date.getTime()))
+            continue;
+        const key = dayKey(date);
+        const day = days.get(key) ?? { date };
+        const values = [entry.temperature, entry.templow].filter((v) => typeof v === "number" && Number.isFinite(v));
+        if (values.length) {
+            const high = entry.temperature ?? Math.max(...values);
+            const low = entry.templow ?? Math.min(...values);
+            day.high = day.high === undefined ? high : Math.max(day.high, high);
+            day.low = day.low === undefined ? low : Math.min(day.low, low);
+        }
+        // The day's own condition, not the night's.
+        if (!day.condition || (entry.is_daytime && !day.daytime)) {
+            day.condition = entry.condition;
+            day.daytime = entry.is_daytime;
+        }
+        days.set(key, day);
+    }
+    return [...days.values()].map(({ date, condition, high, low }) => ({
+        date,
+        condition,
+        high,
+        low,
+    }));
+}
+/** Today's entry, when the forecast starts today. */
+function today(days, now = new Date()) {
+    return days.find((d) => dayKey(d.date) === dayKey(now));
+}
+/** The icon drawn for a condition (icons.ts), and its colour family. */
+function conditionIcon(condition = "") {
+    const map = {
+        "clear-night": ["wx-night", "night"],
+        cloudy: ["wx-cloud", "cloud"],
+        exceptional: ["warning", "alert"],
+        fog: ["wx-fog", "cloud"],
+        hail: ["wx-hail", "rain"],
+        lightning: ["wx-lightning", "storm"],
+        "lightning-rainy": ["wx-lightning", "storm"],
+        partlycloudy: ["wx-partly", "sun"],
+        pouring: ["wx-rain", "rain"],
+        rainy: ["wx-rain", "rain"],
+        snowy: ["wx-snow", "snow"],
+        "snowy-rainy": ["wx-snow", "snow"],
+        sunny: ["wx-sun", "sun"],
+        windy: ["wx-wind", "cloud"],
+        "windy-variant": ["wx-wind", "cloud"],
+    };
+    const [icon, tone] = map[condition] ?? ["wx-cloud", "cloud"];
+    return { icon, tone };
+}
 
 const schema = (t, hass) => [
     {
@@ -821,6 +1490,13 @@ const schema = (t, hass) => [
     { name: "name", selector: { text: {} } },
     { name: "show_overlay", selector: { boolean: {} } },
     { name: "confirm_vacation", selector: { boolean: {} } },
+    { name: "show_settings", selector: { boolean: {} } },
+    { name: "weather", selector: { entity: { domain: "weather" } } },
+    { name: "show_forecast", selector: { boolean: {} } },
+    {
+        name: "sensors",
+        selector: { entity: { domain: "sensor", multiple: true } },
+    },
 ];
 let Editor = class Editor extends i {
     setConfig(c) {
@@ -829,6 +1505,8 @@ let Editor = class Editor extends i {
             color_scheme: "home-assistant",
             show_overlay: true,
             confirm_vacation: true,
+            show_settings: false,
+            show_forecast: false,
             ...c,
         };
     }
@@ -847,7 +1525,7 @@ let Editor = class Editor extends i {
       .hass=${this.hass}
       .data=${this.config}
       .schema=${schema(localize(this.hass), this.hass)}
-      .computeLabel=${(x) => ({ color_scheme: colorSchemeText(this.hass).label, appearance: localize(this.hass).appearance, entity: localize(this.hass).entityLabel, name: localize(this.hass).name, show_overlay: localize(this.hass).showOverlay, confirm_vacation: localize(this.hass).confirmVacation })[x.name] || x.name}
+      .computeLabel=${(x) => ({ color_scheme: colorSchemeText(this.hass).label, appearance: localize(this.hass).appearance, entity: localize(this.hass).entityLabel, name: localize(this.hass).name, show_overlay: localize(this.hass).showOverlay, confirm_vacation: localize(this.hass).confirmVacation, show_settings: localize(this.hass).showSettings, weather: localize(this.hass).weatherLabel, show_forecast: localize(this.hass).showForecast, sensors: localize(this.hass).sensorsLabel })[x.name] || x.name}
       @value-changed=${this.changed}
     ></ha-form>`;
     }
@@ -872,6 +1550,12 @@ let HouseStateCard = class HouseStateCard extends i {
     constructor() {
         super(...arguments);
         this.busy = false;
+        this.range = 24;
+        this.historyLoading = false;
+        this.historyError = "";
+        /** Bumped to ignore history replies that arrive after a reset. */
+        this.historyTicket = 0;
+        this.plotWidth = 600;
     }
     setConfig(config) {
         if (!config.entity)
@@ -882,16 +1566,90 @@ let HouseStateCard = class HouseStateCard extends i {
             this.failure = undefined;
             this.confirming = undefined;
         }
+        if (this.config?.weather !== config.weather ||
+            String(this.config?.sensors) !== String(config.sensors))
+            this.resetHistory();
         this.config = {
             appearance: "default",
             show_overlay: true,
             confirm_vacation: true,
+            show_settings: false,
+            show_forecast: false,
             ...config,
         };
         this.setAttribute("data-appearance", this.config.appearance);
     }
     getCardSize() {
-        return 6;
+        return (6 +
+            (this.config?.weather ? (this.config.show_forecast ? 3 : 1) : 0) +
+            (this.config?.sensors?.length ? 2 : 0));
+    }
+    connectedCallback() {
+        super.connectedCallback();
+        this.subscribeForecast();
+    }
+    disconnectedCallback() {
+        super.disconnectedCallback();
+        this.unsubscribeForecast();
+        this.resetHistory();
+        this.resize?.disconnect();
+        this.resize = undefined;
+    }
+    updated() {
+        this.subscribeForecast();
+        const plot = this.shadowRoot?.querySelector(".history-plot");
+        if (!plot || this.resize)
+            return;
+        this.resize = new ResizeObserver(([entry]) => {
+            const width = Math.round(entry.contentRect.width);
+            // Redraw next frame, outside the observer's own layout pass.
+            if (width > 0 && Math.abs(width - this.plotWidth) > 4)
+                requestAnimationFrame(() => {
+                    this.plotWidth = width;
+                    this.requestUpdate();
+                });
+        });
+        this.resize.observe(plot);
+    }
+    /**
+     * Follow the weather entity's forecast while the card is shown: today's
+     * high and low come from it, and the forecast row when that is on.
+     */
+    subscribeForecast() {
+        const id = this.config?.weather;
+        const type = id ? forecastType(this.hass?.states?.[id]) : undefined;
+        const key = id && type && this.isConnected ? `${id}|${type}` : undefined;
+        if (key === this.forecastKey)
+            return;
+        this.unsubscribeForecast();
+        this.forecastKey = key;
+        const connection = this.hass?.connection;
+        if (!key || !connection)
+            return;
+        this.forecastUnsub = connection
+            .subscribeMessage((message) => {
+            if (this.forecastKey === key)
+                this.forecast = forecastDays(message.forecast ?? []);
+        }, {
+            type: "weather/subscribe_forecast",
+            entity_id: id,
+            forecast_type: type,
+        })
+            .catch(() => undefined);
+    }
+    unsubscribeForecast() {
+        const pending = this.forecastUnsub;
+        this.forecastUnsub = undefined;
+        this.forecastKey = undefined;
+        this.forecast = undefined;
+        void pending?.then((unsubscribe) => unsubscribe?.()).catch(() => undefined);
+    }
+    moreInfo(entityId) {
+        this.dispatchEvent(new CustomEvent("hass-more-info", {
+            detail: { entityId },
+            bubbles: true,
+            composed: true,
+        }));
     }
     static getConfigElement() {
         return document.createElement("lovelace-house-state-editor");
@@ -1042,11 +1800,339 @@ let HouseStateCard = class HouseStateCard extends i {
       >${icon("cog")}</a
     >`;
     }
-    header(title) {
+    /** The cog is optional; a card that cannot show the house always offers it. */
+    header(title, failed = false) {
         return b `<div class="header">
       <div class="title">${title}</div>
-      ${this.settingsLink()}
+      ${this.config?.show_settings || failed ? this.settingsLink() : A}
     </div>`;
+    }
+    number(value, digits = 1) {
+        try {
+            return new Intl.NumberFormat(formattingLocale(this.hass), {
+                maximumFractionDigits: digits,
+            }).format(value);
+        }
+        catch {
+            return String(value);
+        }
+    }
+    temperature(value, unit) {
+        const n = Number(value);
+        if (value === undefined || value === null || !Number.isFinite(n))
+            return "";
+        return `${this.number(n)}${unit ? ` ${unit}` : ""}`;
+    }
+    /** A forecast day's temperature, without the unit: "11.3°". */
+    degrees(value) {
+        return value === undefined ? "" : `${this.number(value)}°`;
+    }
+    condition(state) {
+        if (["unavailable", "unknown"].includes(state.state))
+            return state.state === "unknown" ? this.t.unknown : this.t.unavailable;
+        const formatted = this.hass?.formatEntityState?.(state);
+        if (formatted && formatted !== state.state)
+            return formatted;
+        return this.t.conditions[state.state] ?? state.state;
+    }
+    /** A sensor's value as Home Assistant formats it, else locale digits and unit. */
+    sensorValue(state) {
+        if (!state || state.state === "unavailable")
+            return this.t.unavailable;
+        if (state.state === "unknown")
+            return this.t.unknown;
+        const formatted = this.hass?.formatEntityState?.(state);
+        if (formatted)
+            return formatted;
+        const n = Number(state.state);
+        const unit = state.attributes.unit_of_measurement;
+        return `${Number.isFinite(n) && state.state !== "" ? this.number(n, 2) : state.state}${unit ? ` ${unit}` : ""}`;
+    }
+    weekday(date) {
+        try {
+            return new Intl.DateTimeFormat(formattingLocale(this.hass), {
+                weekday: "short",
+            }).format(date);
+        }
+        catch {
+            return date.toDateString().slice(0, 3);
+        }
+    }
+    renderWeather(id) {
+        const state = this.hass?.states?.[id];
+        if (!state)
+            return b `<div class="weather missing" data-weather>
+        ${this.t.missing}: ${id}
+      </div>`;
+        const unit = String(state.attributes.temperature_unit ?? "");
+        const days = this.forecast ?? [];
+        const now = today(days);
+        const { icon: name, tone } = conditionIcon(state.state);
+        const high = this.temperature(now?.high, unit);
+        const low = this.temperature(now?.low, unit);
+        return b `<button
+        class="weather"
+        data-weather
+        type="button"
+        @click=${() => this.moreInfo(id)}
+      >
+        <span class="wx-icon wx-${tone}">${icon(name, "wx")}</span>
+        <span class="wx-text">
+          <span class="wx-condition">${this.condition(state)}</span>
+          <span class="wx-place">${this.friendly(id)}</span>
+        </span>
+        <span class="wx-temps">
+          <span class="wx-now"
+            >${this.temperature(state.attributes.temperature, unit)}</span
+          >
+          ${high && low
+            ? b `<span
+                  class="wx-range"
+                  title=${fill(this.t.highLow, { high, low })}
+                  >${high} / ${low}</span
+                >`
+            : A}
+        </span>
+      </button>
+      ${this.config.show_forecast && days.length
+            ? b `<ol class="forecast" aria-label=${this.t.forecast}>
+              ${days.slice(0, 5).map((day) => {
+                const c = conditionIcon(day.condition);
+                const label = day.condition
+                    ? (this.t.conditions[day.condition] ?? day.condition)
+                    : "";
+                return b `<li class="day" data-day>
+                  <span class="day-name">${this.weekday(day.date)}</span>
+                  <span
+                    class="wx-icon wx-${c.tone}"
+                    role="img"
+                    aria-label=${label}
+                    title=${label}
+                    >${icon(c.icon, "wx")}</span
+                  >
+                  <span class="day-high">${this.degrees(day.high)}</span>
+                  <span class="day-low">${this.degrees(day.low)}</span>
+                </li>`;
+            })}
+            </ol>`
+            : A}`;
+    }
+    renderSensors(ids) {
+        return b `<div class="sensors">
+      ${ids.map((id) => {
+            const state = this.hass?.states?.[id];
+            const down = !state || state.state === "unavailable";
+            const history = hasHistory(state);
+            return b `<button
+          class="sensor ${down ? "down" : ""}"
+          data-sensor=${id}
+          type="button"
+          aria-haspopup=${history ? "dialog" : A}
+          title=${history ? this.t.showHistory : ""}
+          @click=${() => (history ? this.openHistory(id) : this.moreInfo(id))}
+        >
+          <span class="sensor-icon"
+            >${state ? b `<ha-state-icon .hass=${this.hass} .stateObj=${state}></ha-state-icon>` : A}${down ? b `<span class="badge" aria-hidden="true">!</span>` : A}</span
+          >
+          <span class="sensor-name">${this.friendly(id)}</span>
+          <span class="sensor-value">${this.sensorValue(state)}</span>
+        </button>`;
+        })}
+    </div>`;
+    }
+    /** Weather and sensors at the top, when the card is set up with them. */
+    renderOutside() {
+        const weather = this.config?.weather;
+        const sensors = this.config?.sensors ?? [];
+        if (!weather && !sensors.length)
+            return A;
+        return b `<section class="outside">
+      ${weather ? this.renderWeather(weather) : A}
+      ${sensors.length ? this.renderSensors(sensors) : A}
+    </section>`;
+    }
+    /** Drop loaded history and ignore replies still in flight. */
+    resetHistory() {
+        this.historyTicket++;
+        this.historyFor = this.series = this.window = this.hover = undefined;
+        this.historyLoading = false;
+        this.historyError = "";
+        this.shadowRoot?.querySelector("#history")?.close();
+    }
+    async openHistory(id) {
+        if (!this.hass)
+            return;
+        this.resetHistory();
+        this.historyFor = historySources(this.config.sensors ?? [], id, this.hass.states);
+        await this.updateComplete;
+        const dialog = this.shadowRoot?.querySelector("#history");
+        if (dialog && !dialog.open)
+            dialog.showModal();
+        void this.loadHistory();
+    }
+    async loadHistory(range = this.range) {
+        const sources = this.historyFor;
+        const connection = this.hass?.connection;
+        if (!sources)
+            return;
+        const ticket = ++this.historyTicket;
+        this.range = range;
+        this.historyLoading = true;
+        this.historyError = "";
+        this.hover = undefined;
+        const end = Date.now();
+        try {
+            if (!connection)
+                throw new Error(this.t.unavailable);
+            const series = await loadHistory(connection, sources, this.hass.states, range, end);
+            if (ticket !== this.historyTicket)
+                return;
+            this.series = series;
+            this.window = [end - range * 3600000, end];
+        }
+        catch (error) {
+            if (ticket !== this.historyTicket)
+                return;
+            this.series = this.window = undefined;
+            this.historyError = `${this.t.historyFailed}: ${error?.message || error}`;
+        }
+        this.historyLoading = false;
+    }
+    closeOnBackdrop(e) {
+        if (e.target !== e.currentTarget)
+            return;
+        const dialog = e.currentTarget;
+        const r = dialog.getBoundingClientRect();
+        if (e.clientX < r.left ||
+            e.clientX > r.right ||
+            e.clientY < r.top ||
+            e.clientY > r.bottom)
+            dialog.close();
+    }
+    historyDialog(title) {
+        if (!this.config?.sensors?.length)
+            return A;
+        const locale = formattingLocale(this.hass);
+        const format = this.hass?.locale?.time_format;
+        const hour12 = format === "12" ? true : format === "24" ? false : undefined;
+        const time = (ms, withDay) => {
+            try {
+                return new Intl.DateTimeFormat(locale, withDay
+                    ? { weekday: "short", day: "numeric" }
+                    : { hour: "2-digit", minute: "2-digit", hour12 }).format(ms);
+            }
+            catch {
+                return new Date(ms).toLocaleTimeString();
+            }
+        };
+        const span = (hours) => {
+            try {
+                return new Intl.NumberFormat(locale, {
+                    style: "unit",
+                    unit: hours < 48 ? "hour" : "day",
+                    unitDisplay: "short",
+                }).format(hours < 48 ? hours : hours / 24);
+            }
+            catch {
+                return hours < 48 ? `${hours} h` : `${hours / 24} d`;
+            }
+        };
+        const number = (value, digits) => new Intl.NumberFormat(locale, {
+            minimumFractionDigits: digits,
+            maximumFractionDigits: digits,
+        }).format(value);
+        const series = this.series;
+        const window = this.window;
+        const at = this.hover;
+        const twoScales = !!series && units(series)[1] !== undefined;
+        const close = () => this.shadowRoot?.querySelector("#history")?.close();
+        return b `<dialog
+      id="history"
+      aria-labelledby="history-title"
+      @click=${this.closeOnBackdrop}
+      @close=${() => {
+            this.historyTicket++;
+            this.historyLoading = false;
+            this.hover = undefined;
+        }}
+    >
+      <div class="dialog-top">
+        <h2 class="dialog-title" id="history-title">
+          ${this.t.history}<span class="subtitle">${title}</span>
+        </h2>
+        <button
+          class="icon"
+          data-close-history
+          aria-label=${this.t.closeHistory}
+          title=${this.t.closeHistory}
+          @click=${close}
+        >
+          ${icon("close")}
+        </button>
+      </div>
+      <div
+        class="history-ranges"
+        role="group"
+        aria-label=${this.t.historyRanges}
+      >
+        ${RANGES.map((hours) => b `<button
+              class="chip ${this.range === hours ? "active" : ""}"
+              data-range=${hours}
+              aria-pressed=${String(this.range === hours)}
+              @click=${() => void this.loadHistory(hours)}
+            >
+              ${span(hours)}
+            </button>`)}
+      </div>
+      <div
+        class="history-plot"
+        aria-busy=${String(this.historyLoading)}
+        @pointermove=${(e) => {
+            const svg = e.currentTarget.querySelector("svg");
+            if (!svg || !window)
+                return;
+            this.hover = timeAt(e, svg, window[0], window[1], twoScales);
+        }}
+        @pointerleave=${() => (this.hover = undefined)}
+      >
+        ${this.historyError
+            ? b `<div class="feedback failed" role="alert">
+                <span class="circ">${icon("warning")}</span>
+                <div class="feedback-title">${this.historyError}</div>
+              </div>`
+            : !series || !window
+                ? b `<p class="history-note" role="status">
+                  ${this.t.loadingHistory}
+                </p>`
+                : series.every((s) => s.points.every(([, v]) => v === undefined))
+                    ? b `<p class="history-note">${this.t.noHistory}</p>`
+                    : chart(series, window[0], window[1], at, { number, time, label: `${this.t.history}: ${title}` }, Math.max(280, this.plotWidth))}
+      </div>
+      <p class="history-when" aria-live="polite">
+        ${at === undefined ? this.t.now : time(at, false)}
+      </p>
+      <div class="history-legend">
+        ${(series ?? []).map((s) => {
+            const value = at === undefined
+                ? s.points[s.points.length - 1]?.[1]
+                : valueAt(s, at);
+            return b `<button
+            class="history-item series-${s.color}"
+            data-series=${s.entityId}
+            @click=${() => {
+                close();
+                this.moreInfo(s.entityId);
+            }}
+          >
+            <span class="swatch" aria-hidden="true"></span>
+            <span class="label">${this.friendly(s.entityId)}</span>
+            <strong
+              >${value === undefined ? "—" : `${this.number(value, 2)}${s.unit ? ` ${s.unit}` : ""}`}</strong
+            >
+          </button>`;
+        })}
+      </div>
+    </dialog>`;
     }
     renderLevels(levels, path, nodes, roles, disabled) {
         const leaf = path[path.length - 1];
@@ -1223,10 +2309,10 @@ let HouseStateCard = class HouseStateCard extends i {
             this.t.title;
         if (!entity)
             return b `<ha-card
-        >${this.header(this.config?.name || this.t.title)}
-        <div class="error">
-          ${this.t.missing}: ${this.config?.entity || ""}
-        </div></ha-card
+        >${this.header(this.config?.name || this.t.title, true)}
+        ${this.renderOutside()}
+        <div class="error">${this.t.missing}: ${this.config?.entity || ""}</div>
+        ${this.historyDialog(this.config?.name || this.t.title)}</ha-card
       >`;
         const a = entity.attributes;
         const cfg = a.config || {
@@ -1238,10 +2324,11 @@ let HouseStateCard = class HouseStateCard extends i {
         const nodes = a.state_tree || cfg.state_tree || [];
         if (!nodes.length)
             return b `<ha-card
-        >${this.header(title)}
+        >${this.header(title, true)} ${this.renderOutside()}
         <div class="error">
           ${this.t.missing}: ${this.config.entity} (${entity.state})
-        </div></ha-card
+        </div>
+        ${this.historyDialog(this.config?.name || this.t.title)}</ha-card
       >`;
         const path = a.active_path || [];
         const overlays = a.overlays || cfg.overlays || [];
@@ -1285,7 +2372,7 @@ let HouseStateCard = class HouseStateCard extends i {
                 .map(([id]) => this.friendly(id))
             : [];
         return b `<ha-card class="tone-${tone}"
-      >${this.header(title)}
+      >${this.header(title)} ${this.renderOutside()}
       <div class="hero">
         <span class="circ big">${icon(this.heroIcon(path, tone))}</span>
         <div class="hero-text">
@@ -1313,6 +2400,7 @@ let HouseStateCard = class HouseStateCard extends i {
             ? this.renderOverlay(a, overlays, disabled)
             : A}
       ${this.renderApply(a, overlays, disabled)} ${this.renderFeedback(current)}
+      ${this.historyDialog(title)}
     </ha-card>`;
     }
 };
@@ -1335,6 +2423,30 @@ __decorate([
 __decorate([
     r()
 ], HouseStateCard.prototype, "confirming", void 0);
+__decorate([
+    r()
+], HouseStateCard.prototype, "forecast", void 0);
+__decorate([
+    r()
+], HouseStateCard.prototype, "historyFor", void 0);
+__decorate([
+    r()
+], HouseStateCard.prototype, "series", void 0);
+__decorate([
+    r()
+], HouseStateCard.prototype, "window", void 0);
+__decorate([
+    r()
+], HouseStateCard.prototype, "hover", void 0);
+__decorate([
+    r()
+], HouseStateCard.prototype, "range", void 0);
+__decorate([
+    r()
+], HouseStateCard.prototype, "historyLoading", void 0);
+__decorate([
+    r()
+], HouseStateCard.prototype, "historyError", void 0);
 HouseStateCard = __decorate([
     t("lovelace-house-state-card")
 ], HouseStateCard);

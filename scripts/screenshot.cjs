@@ -46,6 +46,12 @@ function hub(variant) {
       attributes: { friendly_name: "House", state_tree: tree, overlays, config, ...attributes },
     },
     "valve.main_water": { entity_id: "valve.main_water", state: "open", attributes: { friendly_name: "Main tap" } },
+    // Generic weather and sensors for the top section; no real place or home.
+    "weather.forecast_home": { entity_id: "weather.forecast_home", state: "rainy", attributes: { friendly_name: "Værmelding", temperature: 8.7, temperature_unit: "°C", supported_features: 1 } },
+    "sensor.ute": { entity_id: "sensor.ute", state: "9.9", attributes: { friendly_name: "Ute", unit_of_measurement: "°C", state_class: "measurement", device_class: "temperature" } },
+    "sensor.stue": { entity_id: "sensor.stue", state: "21.4", attributes: { friendly_name: "Stue", unit_of_measurement: "°C", state_class: "measurement", device_class: "temperature" } },
+    "sensor.co2": { entity_id: "sensor.co2", state: "unavailable", attributes: { friendly_name: "CO2", unit_of_measurement: "ppm", state_class: "measurement" } },
+    "sensor.fukt_inne": { entity_id: "sensor.fukt_inne", state: "38", attributes: { friendly_name: "Fukt inne", unit_of_measurement: "%", state_class: "measurement" } },
   };
 }
 
@@ -60,15 +66,49 @@ async function shot(browser, errors, { file, theme, cards }) {
   await page.addScriptTag({ type: "module", content: readFileSync(resolve(root, "dist/lovelace-house-state-card.js"), "utf8") });
   await page.evaluate(async (cards) => {
     await customElements.whenDefined("lovelace-house-state-card");
-    for (const { states, appearance, click } of cards) {
+    // Simulated recorder and forecast: smooth made-up curves, no real data.
+    const connection = {
+      subscribeMessage: async (callback) => {
+        const conditions = ["rainy", "partlycloudy", "cloudy", "partlycloudy", "snowy"];
+        const highs = [11.3, 12.6, 12.3, 14.3, 14.9], lows = [6.5, 5.3, 9, 7.5, 11.5];
+        callback({
+          forecast: conditions.map((condition, i) => {
+            const d = new Date();
+            d.setDate(d.getDate() + i);
+            d.setHours(12, 0, 0, 0);
+            return { datetime: d.toISOString(), condition, temperature: highs[i], templow: lows[i] };
+          }),
+        });
+        return () => {};
+      },
+      sendMessagePromise: async (message) => {
+        const start = Date.parse(message.start_time), now = Date.now();
+        const curve = { "sensor.ute": [8, 4], "sensor.stue": [21, 1.2], "sensor.co2": [700, 250] };
+        return Object.fromEntries(
+          message.entity_ids.map((id) => {
+            const [mid, amp] = curve[id] ?? [40, 5];
+            const rows = [];
+            for (let t = start; t < now; t += 1_800_000) {
+              if (id === "sensor.co2" && now - t < 3 * 3_600_000) break;
+              const v = mid + amp * Math.sin(((t / 3_600_000) % 24) / 24 * 2 * Math.PI - 2);
+              rows.push({ s: String(Math.round(v * 10) / 10), lu: t / 1000 });
+            }
+            if (id === "sensor.co2") rows.push({ s: "unavailable", lu: (now - 3 * 3_600_000) / 1000 });
+            return [id, rows];
+          }),
+        );
+      },
+    };
+    for (const { states, appearance, click, extra } of cards) {
       const card = document.createElement("lovelace-house-state-card");
-      card.setConfig({ type: "custom:lovelace-house-state-card", entity: "sensor.house_state", appearance, name: "Huset" });
-      card.hass = { states, language: "nb", locale: { language: "nb" }, callService: () => new Promise(() => {}) };
+      card.setConfig({ type: "custom:lovelace-house-state-card", entity: "sensor.house_state", appearance, name: "Huset", ...extra });
+      card.hass = { states, language: "nb", locale: { language: "nb" }, connection, callService: () => new Promise(() => {}) };
       document.querySelector("main").append(card);
       await card.updateComplete;
       if (click) {
         card.shadowRoot.querySelector(click).click();
         await card.updateComplete;
+        await new Promise((resolve) => setTimeout(resolve, 300));
       }
     }
   }, cards);
@@ -96,8 +136,26 @@ async function shot(browser, errors, { file, theme, cards }) {
         { states: hub("evening"), appearance: "default", click: '[data-state="eating"]' },
       ],
     });
+    const outside = { weather: "weather.forecast_home", show_forecast: true, sensors: ["sensor.ute", "sensor.co2", "sensor.fukt_inne"] };
+    await shot(browser, errors, {
+      file: "weather.png",
+      theme: light,
+      cards: [{ states: hub("evening"), appearance: "default", extra: outside }],
+    });
+    await shot(browser, errors, {
+      file: "history.png",
+      theme: dark,
+      cards: [
+        {
+          states: hub("evening"),
+          appearance: "bubble",
+          extra: { ...outside, sensors: ["sensor.ute", "sensor.stue", "sensor.co2"] },
+          click: '[data-sensor="sensor.ute"]',
+        },
+      ],
+    });
     if (errors.length) throw new Error(`Browser errors: ${errors.join("; ")}`);
-    console.log("Wrote images/bubble-night.png and images/light.png with simulated Home Assistant data.");
+    console.log("Wrote images/bubble-night.png, light.png, weather.png and history.png with simulated Home Assistant data.");
   } finally {
     await browser.close();
   }

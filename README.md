@@ -23,11 +23,17 @@ name: Huset
 appearance: bubble # default or bubble
 show_overlay: true
 confirm_vacation: true
+show_settings: false # the settings cog in the header
+weather: weather.forecast_home # optional
+show_forecast: false # the coming days under the weather
+sensors: # optional tiles, each opening its history
+  - sensor.outdoor_temperature
+  - sensor.living_room_co2
 ```
 
 All card display options are available in the Lovelace visual editor. The integration starts with a Home/Day/Activity example, but none of those names or levels are special.
 
-**House State integration 0.3.0 or later is required for the central configuration flow.** Open **Settings → Devices & services → House State → Configure** to manage the state tree, scenes, default children, occupancy, automation roles, overlays and activation rules, door/gate/person entities, automatic return/away, grace period, night schedule and legacy mirrors through the integration's structured forms. The card's settings cog opens the **House State** configuration panel (integration 0.6.0 or later, administrators), which shows the whole setup at once; otherwise it links to the House State integration page. It works while the sensor is unavailable too.
+**House State integration 0.3.0 or later is required for the central configuration flow.** Open **Settings → Devices & services → House State → Configure** to manage the state tree, scenes, default children, occupancy, automation roles, overlays and activation rules, door/gate/person entities, automatic return/away, grace period, night schedule and legacy mirrors through the integration's structured forms. The card's settings cog opens the **House State** configuration panel (integration 0.6.0 or later, administrators), which shows the whole setup at once; otherwise it links to the House State integration page. From 0.7.0 the cog is off by default; turn on **Show settings button** in the card editor to show it. When the card cannot find or read its House State sensor, it shows the cog anyway, so the settings stay reachable.
 
 The dashboard card contains status, state selection, optional overlay selection, vacation confirmation and **Apply scene now**.
 
@@ -39,6 +45,18 @@ The dashboard card contains status, state selection, optional overlay selection,
 - **Vacation confirmation inside the card.** Choosing a state in the vacation role's branch opens a panel naming the state and, when water valves are configured, that the water is shut off and that a guest visit opens it again. Nothing is sent until you confirm.
 - **Apply scene now** says when the selected scene has not run yet (`scene_stale`) or is waiting to run (`application_pending`).
 - **Feedback.** While a request is pending the card says what it is doing and locks its controls; a failure stays visible in the card (and as a Home Assistant notification) with the state that is still selected. A water valve House State could not move is reported. That action calls `house_state.apply_scene` with `force: true` to resynchronize devices. The card no longer edits integration configuration or calls `house_state.set_config`. During an integration reload it retains the last valid display with actions disabled; refreshed sensor data restores the controls. State, overlay and scene actions are also disabled while a request is pending.
+
+### Weather and sensors at the top (0.7.0)
+
+![The top section on a light theme: rain now with today's high and low, the coming five days, and outdoor, CO₂ and indoor humidity tiles, one of them unavailable](images/weather.png)
+
+Both parts are optional and set in the card editor; without them the card looks as before.
+
+- **Weather.** Pick any `weather.*` entity. The card shows the condition, the entity's name, the current temperature and today's high and low. Tap it for Home Assistant's weather details. **Show forecast** (off by default) adds the coming five days with their condition, high and low. The forecast comes from Home Assistant's forecast subscription, so it works with any weather integration that offers a daily or a day-and-night forecast; without one, the high and low are left out.
+- **Sensors.** Pick any sensors, such as the outdoor temperature, CO₂ or indoor humidity. Each is a tile with its icon, name and value as Home Assistant formats it; an unavailable sensor is marked.
+- **History.** A measured sensor tile opens a history in the card's own style: the tapped reading together with the card's other sensors in its unit, and those in one more unit on a right-hand scale (a third unit is left out). Choose 6 h, 24 h or 7 d, read every value under the pointer, and tap a legend entry for its details. Spells when a sensor was unavailable are gaps. A tile that is not a measurement (a text or timestamp sensor) opens Home Assistant's details instead, since a line adds nothing there.
+
+![History of the outdoor temperature on a dark Bubble card, with the living-room temperature and CO₂ on a second scale](images/history.png)
 
 State changes call `house_state.set` with `{state, reason: user}`. Overlay changes use `{overlay, reason: user}`. The card reads `active_path`, `state_tree`, `overlays`, `overlay_choice`, `overlay_rule`, `overlay_hold_until`, and `config` from the hub sensor.
 

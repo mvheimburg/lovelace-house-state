@@ -7,9 +7,19 @@ export interface HassEntity {
 export interface HomeAssistant {
   states: Record<string, HassEntity>;
   language?: string;
-  locale?: { language?: string };
   /** Sidebar panels this user can open; House State 0.6.0 adds `house-state` for admins. */
   panels?: Record<string, unknown>;
+  /** HA's 12/24-hour preference; the card otherwise follows the locale. */
+  locale?: { language?: string; time_format?: string };
+  /** HA's own state formatting (units, decimals, translated enum states). */
+  formatEntityState?(state: HassEntity, value?: string): string;
+  connection?: {
+    sendMessagePromise<T>(message: Record<string, unknown>): Promise<T>;
+    subscribeMessage<T>(
+      callback: (message: T) => void,
+      message: Record<string, unknown>,
+    ): Promise<() => Promise<void> | void>;
+  };
   callService(
     domain: string,
     service: string,
@@ -24,6 +34,14 @@ export interface CardConfig {
   color_scheme?: ColorScheme;
   show_overlay?: boolean;
   confirm_vacation?: boolean;
+  /** The settings cog in the header (off by default). */
+  show_settings?: boolean;
+  /** A `weather.*` entity shown at the top: now, and today's high and low. */
+  weather?: string;
+  /** The coming days' forecast under it (off by default). */
+  show_forecast?: boolean;
+  /** Sensors shown as tiles at the top, each opening its history. */
+  sensors?: string[];
 }
 export interface StateNode {
   id: string;
