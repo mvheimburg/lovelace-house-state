@@ -26,6 +26,6 @@
     "vitest": "^5.0.1"
   },
   "dependencies": {
-    "lovelace-card-history": "github:mvheimburg/lovelace-card-history#v0.1.0"
+    "lovelace-card-history": "github:mvheimburg/lovelace-card-history#v0.1.1"
   }
 }
