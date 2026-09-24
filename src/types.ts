@@ -42,6 +42,8 @@ export interface CardConfig {
   show_forecast?: boolean;
   /** Sensors shown as tiles at the top, each opening its history. */
   sensors?: string[];
+  /** Where a sensor's history opens: the card's own view (default) or Home Assistant's. */
+  history?: "card" | "more-info" | "panel";
 }
 export interface StateNode {
   id: string;

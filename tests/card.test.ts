@@ -408,6 +408,16 @@ describe("Bokmål presentation with English configuration", () => {
         form.computeLabel({ name }),
       ),
     ).toEqual(["Vis innstillingsknapp", "Vær", "Vis værvarsel", "Sensorer"]);
+    expect(form.computeLabel({ name: "history" })).toBe("Historikkvisning");
+    expect(
+      form.schema
+        .find((f: { name: string }) => f.name === "history")
+        .selector.select.options.map((o: { label: string }) => o.label),
+    ).toEqual([
+      "I kortet",
+      "Home Assistants detaljer",
+      "Home Assistants historikkside",
+    ]);
     const field = (name: string) =>
       form.schema.find((f: { name: string }) => f.name === name);
     expect(field("weather").selector).toEqual({
@@ -418,6 +428,7 @@ describe("Bokmål presentation with English configuration", () => {
     expect(form.data).toMatchObject({
       show_settings: false,
       show_forecast: false,
+      history: "card",
     });
     const changed = vi.fn();
     editor.addEventListener("config-changed", changed);

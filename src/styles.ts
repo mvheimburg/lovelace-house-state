@@ -18,6 +18,19 @@ export const styles = css`
     --hs-pill: var(--secondary-background-color, #f3f2ee);
     --hs-radius: 20px;
     --hs-tile: 16px;
+    /* The shared history view in House State's colours. */
+    --history-series-0: var(--hs-neutral);
+    --history-series-1: var(--hs-away);
+    --history-series-2: var(--hs-home);
+    --history-series-3: var(--purple-color, #8e44ad);
+    --history-series-4: var(--hs-vacation);
+    --history-text: var(--hs-text);
+    --history-muted: var(--hs-muted);
+    --history-surface: var(--hs-surface);
+    --history-pill: var(--hs-pill);
+    --history-accent: var(--hs-neutral);
+    --history-tile: var(--hs-tile);
+    --history-radius: 24px;
   }
   :host([data-appearance="bubble"]) {
     --hs-surface: var(
@@ -547,155 +560,8 @@ export const styles = css`
     color: var(--hs-muted);
     font-variant-numeric: tabular-nums;
   }
-  /* History: one chart of the card's readings. */
-  .series-0 {
-    --series: var(--hs-neutral);
-  }
-  .series-1 {
-    --series: var(--hs-away);
-  }
-  .series-2 {
-    --series: var(--hs-home);
-  }
-  .series-3 {
-    --series: var(--purple-color, #8e44ad);
-  }
-  .series-4 {
-    --series: var(--hs-vacation);
-  }
-  dialog {
-    color: var(--hs-text);
-    background: var(--hs-surface);
-    border: 0;
-    border-radius: 24px;
-    padding: 16px;
-    width: min(640px, calc(100vw - 24px));
-    max-width: calc(100vw - 24px);
-    max-height: calc(100dvh - 32px);
-    overflow: auto;
-    box-shadow: 0 16px 60px #0006;
-  }
-  :host([data-appearance="bubble"]) dialog {
-    border-radius: var(--bubble-border-radius, 32px);
-  }
-  dialog[open] {
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-  }
-  dialog::backdrop {
-    background: #0008;
-  }
-  .dialog-top {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    padding-left: 8px;
-  }
-  .dialog-title {
-    flex: 1;
-    margin: 0;
-    font-size: 17px;
-    font-weight: 700;
-    color: var(--hs-muted);
-  }
-  .subtitle {
-    display: block;
-    font-size: 13px;
-    font-weight: 500;
-  }
-  button.icon {
-    border: 0;
-    padding: 0;
-    cursor: pointer;
-  }
-  .history-ranges {
-    display: flex;
-    gap: 6px;
-  }
-  .history-ranges .chip {
-    min-height: 44px;
-    padding: 0 16px;
-  }
-  .history-plot {
-    min-height: 120px;
-    touch-action: pan-y;
-  }
-  .history-chart {
-    display: block;
-    width: 100%;
-    height: auto;
-  }
-  .history-chart .grid {
-    stroke: color-mix(in srgb, var(--hs-muted) 22%, transparent);
-  }
-  .history-chart .axis {
-    fill: var(--hs-muted);
-    font-size: 12px;
-    font-variant-numeric: tabular-nums;
-  }
-  .history-chart .line {
-    fill: none;
-    stroke: var(--series);
-    stroke-width: 2;
-    stroke-linejoin: round;
-  }
-  .history-chart .cursor {
-    stroke: var(--hs-muted);
-    stroke-dasharray: 3 3;
-  }
-  .history-note {
-    margin: 40px 0;
-    text-align: center;
-    font-size: 14px;
-    color: var(--hs-muted);
-  }
-  .history-when {
-    margin: -6px 8px 0;
-    font-size: 12.5px;
-    color: var(--hs-muted);
-    font-variant-numeric: tabular-nums;
-  }
-  .history-legend {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(min(150px, 100%), 1fr));
-    gap: 6px;
-  }
-  .history-item {
-    display: grid;
-    grid-template-columns: auto 1fr;
-    align-items: center;
-    gap: 2px 10px;
-    min-height: 44px;
-    padding: 8px 14px;
-    border: 0;
-    border-radius: var(--hs-tile);
-    font: inherit;
-    color: var(--hs-text);
-    background: var(--hs-pill);
-    text-align: left;
-    cursor: pointer;
-  }
-  .history-item .swatch {
-    grid-row: span 2;
-    width: 16px;
-    height: 0;
-    border-top: 3px solid var(--series);
-  }
-  .history-item .label {
-    font-size: 0.78rem;
-    color: var(--hs-muted);
-    overflow-wrap: anywhere;
-  }
-  .history-item strong {
-    font-size: 1rem;
-    font-variant-numeric: tabular-nums;
-  }
   @media (max-width: 400px) {
     ha-card {
-      padding: 12px;
-    }
-    dialog {
       padding: 12px;
     }
     .wx-condition {

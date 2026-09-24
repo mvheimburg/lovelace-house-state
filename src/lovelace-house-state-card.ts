@@ -4,17 +4,26 @@ import { customElement, property, state } from "lit/decorators.js";
 import { styles } from "./styles";
 import { formattingLocale, localize, displayName, fill } from "./localize";
 import { icon, hasIcon } from "./icons";
-import { chart, timeAt, units } from "./chart";
 import {
-  RANGES,
-  hasHistory,
-  historySources,
-  loadHistory,
+  HistoryController,
+  historyConnection,
+  historyDialog,
+  historyFormat,
+  historyMode,
+  historyStrings,
+  historyStyles,
+  isMeasurement,
+  lineChart,
+  lineChartTimeAt,
+  loadSeries,
+  openHistoryDialog,
+  openHomeAssistantHistory,
+  units,
   valueAt,
-  type Range,
   type Series,
   type Source,
-} from "./history";
+} from "lovelace-card-history";
+import { historySources } from "./history";
 import {
   conditionIcon,
   forecastDays,
@@ -53,19 +62,18 @@ export class HouseStateCard extends LitElement {
   private forecastKey?: string;
   private forecastUnsub?: Promise<(() => Promise<void> | void) | undefined>;
   @state() private forecast?: ForecastDay[];
-  /** History dialog: what it draws, the range, loaded series, hovered time. */
-  @state() private historyFor?: Source[];
-  @state() private series?: Series[];
-  @state() private window?: [number, number];
-  @state() private hover?: number;
-  @state() private range: Range = 24;
-  @state() private historyLoading = false;
-  @state() private historyError = "";
-  /** Bumped to ignore history replies that arrive after a reset. */
-  private historyTicket = 0;
-  private plotWidth = 600;
-  private resize?: ResizeObserver;
-  static styles = styles;
+  /** What the history dialog draws, and its state (shared history view). */
+  private historyFor?: Source[];
+  private history = new HistoryController<Series[]>(this, (range, end) =>
+    loadSeries(
+      historyConnection(this.hass),
+      this.historyFor ?? [],
+      this.hass.states,
+      range,
+      { now: end },
+    ),
+  );
+  static styles = [historyStyles, styles];
 
   setConfig(config: CardConfig) {
     if (!config.entity) throw new Error(this.t.entityRequired);
@@ -105,23 +113,9 @@ export class HouseStateCard extends LitElement {
     super.disconnectedCallback();
     this.unsubscribeForecast();
     this.resetHistory();
-    this.resize?.disconnect();
-    this.resize = undefined;
   }
   protected updated() {
     this.subscribeForecast();
-    const plot = this.shadowRoot?.querySelector(".history-plot");
-    if (!plot || this.resize) return;
-    this.resize = new ResizeObserver(([entry]) => {
-      const width = Math.round(entry.contentRect.width);
-      // Redraw next frame, outside the observer's own layout pass.
-      if (width > 0 && Math.abs(width - this.plotWidth) > 4)
-        requestAnimationFrame(() => {
-          this.plotWidth = width;
-          this.requestUpdate();
-        });
-    });
-    this.resize.observe(plot);
   }
   /**
    * Follow the weather entity's forecast while the card is shown: today's
@@ -446,14 +440,19 @@ export class HouseStateCard extends LitElement {
       ${ids.map((id) => {
         const state = this.hass?.states?.[id];
         const down = !state || state.state === "unavailable";
-        const history = hasHistory(state);
+        const history = Boolean(
+          state && id.startsWith("sensor.") && isMeasurement(state),
+        );
         return html`<button
           class="sensor ${down ? "down" : ""}"
           data-sensor=${id}
           type="button"
           aria-haspopup=${history ? "dialog" : nothing}
-          title=${history ? this.t.showHistory : ""}
-          @click=${() => (history ? this.openHistory(id) : this.moreInfo(id))}
+          title=${history ? historyStrings(this.hass).showHistory : ""}
+          @click=${(e: Event) =>
+            history
+              ? this.openHistory(id, e.currentTarget as HTMLElement)
+              : this.moreInfo(id)}
         >
           <span class="sensor-icon"
             >${state ? html`<ha-state-icon .hass=${this.hass} .stateObj=${state}></ha-state-icon>` : nothing}${down ? html`<span class="badge" aria-hidden="true">!</span>` : nothing}</span
@@ -474,209 +473,88 @@ export class HouseStateCard extends LitElement {
       ${sensors.length ? this.renderSensors(sensors) : nothing}
     </section>`;
   }
-  /** Drop loaded history and ignore replies still in flight. */
+  /** Forget loaded history, ignore replies still in flight, and close the dialog. */
   private resetHistory() {
-    this.historyTicket++;
-    this.historyFor = this.series = this.window = this.hover = undefined;
-    this.historyLoading = false;
-    this.historyError = "";
+    this.history?.reset();
     this.shadowRoot?.querySelector<HTMLDialogElement>("#history")?.close();
   }
-  private async openHistory(id: string) {
+  /**
+   * Show a sensor's history: in the card (the tapped reading with the card's
+   * related readings), or Home Assistant's own view when the card is set to.
+   */
+  private async openHistory(id: string, trigger: HTMLElement) {
     if (!this.hass) return;
-    this.resetHistory();
-    this.historyFor = historySources(
+    const sources = historySources(
       this.config.sensors ?? [],
       id,
       this.hass.states,
     );
-    await this.updateComplete;
-    const dialog =
-      this.shadowRoot?.querySelector<HTMLDialogElement>("#history");
-    if (dialog && !dialog.open) dialog.showModal();
-    void this.loadHistory();
-  }
-  private async loadHistory(range: Range = this.range) {
-    const sources = this.historyFor;
-    const connection = this.hass?.connection;
-    if (!sources) return;
-    const ticket = ++this.historyTicket;
-    this.range = range;
-    this.historyLoading = true;
-    this.historyError = "";
-    this.hover = undefined;
-    const end = Date.now();
-    try {
-      if (!connection) throw new Error(this.t.unavailable);
-      const series = await loadHistory(
-        connection,
-        sources,
-        this.hass.states,
-        range,
-        end,
-      );
-      if (ticket !== this.historyTicket) return;
-      this.series = series;
-      this.window = [end - range * 3_600_000, end];
-    } catch (error: any) {
-      if (ticket !== this.historyTicket) return;
-      this.series = this.window = undefined;
-      this.historyError = `${this.t.historyFailed}: ${error?.message || error}`;
-    }
-    this.historyLoading = false;
-  }
-  private closeOnBackdrop(e: MouseEvent) {
-    if (e.target !== e.currentTarget) return;
-    const dialog = e.currentTarget as HTMLDialogElement;
-    const r = dialog.getBoundingClientRect();
     if (
-      e.clientX < r.left ||
-      e.clientX > r.right ||
-      e.clientY < r.top ||
-      e.clientY > r.bottom
+      openHomeAssistantHistory(
+        this,
+        historyMode(this.config.history),
+        sources.map((s) => s.entityId),
+        this.history.range,
+      )
     )
-      dialog.close();
+      return;
+    this.historyFor = sources;
+    await openHistoryDialog(
+      this.history,
+      this.shadowRoot,
+      this,
+      historyStrings(this.hass).failed,
+      trigger,
+    );
   }
-  private historyDialog(title: string) {
+  private renderHistory(title: string) {
     if (!this.config?.sensors?.length) return nothing;
-    const locale = formattingLocale(this.hass);
-    const format = this.hass?.locale?.time_format;
-    const hour12 = format === "12" ? true : format === "24" ? false : undefined;
-    const time = (ms: number, withDay: boolean) => {
-      try {
-        return new Intl.DateTimeFormat(
-          locale,
-          withDay
-            ? { weekday: "short", day: "numeric" }
-            : { hour: "2-digit", minute: "2-digit", hour12 },
-        ).format(ms);
-      } catch {
-        return new Date(ms).toLocaleTimeString();
-      }
-    };
-    const span = (hours: number) => {
-      try {
-        return new Intl.NumberFormat(locale, {
-          style: "unit",
-          unit: hours < 48 ? "hour" : "day",
-          unitDisplay: "short",
-        }).format(hours < 48 ? hours : hours / 24);
-      } catch {
-        return hours < 48 ? `${hours} h` : `${hours / 24} d`;
-      }
-    };
-    const number = (value: number, digits: number) =>
-      new Intl.NumberFormat(locale, {
-        minimumFractionDigits: digits,
-        maximumFractionDigits: digits,
-      }).format(value);
-    const series = this.series;
-    const window = this.window;
-    const at = this.hover;
-    const twoScales = !!series && units(series)[1] !== undefined;
-    const close = () =>
-      this.shadowRoot?.querySelector<HTMLDialogElement>("#history")?.close();
-    return html`<dialog
-      id="history"
-      aria-labelledby="history-title"
-      @click=${this.closeOnBackdrop}
-      @close=${() => {
-        this.historyTicket++;
-        this.historyLoading = false;
-        this.hover = undefined;
-      }}
-    >
-      <div class="dialog-top">
-        <h2 class="dialog-title" id="history-title">
-          ${this.t.history}<span class="subtitle">${title}</span>
-        </h2>
-        <button
-          class="icon"
-          data-close-history
-          aria-label=${this.t.closeHistory}
-          title=${this.t.closeHistory}
-          @click=${close}
-        >
-          ${icon("close")}
-        </button>
-      </div>
-      <div
-        class="history-ranges"
-        role="group"
-        aria-label=${this.t.historyRanges}
-      >
-        ${RANGES.map(
-          (hours) =>
-            html`<button
-              class="chip ${this.range === hours ? "active" : ""}"
-              data-range=${hours}
-              aria-pressed=${String(this.range === hours)}
-              @click=${() => void this.loadHistory(hours)}
-            >
-              ${span(hours)}
-            </button>`,
-        )}
-      </div>
-      <div
-        class="history-plot"
-        aria-busy=${String(this.historyLoading)}
-        @pointermove=${(e: PointerEvent) => {
-          const svg = (e.currentTarget as HTMLElement).querySelector("svg");
-          if (!svg || !window) return;
-          this.hover = timeAt(e, svg, window[0], window[1], twoScales);
-        }}
-        @pointerleave=${() => (this.hover = undefined)}
-      >
-        ${
-          this.historyError
-            ? html`<div class="feedback failed" role="alert">
-                <span class="circ">${icon("warning")}</span>
-                <div class="feedback-title">${this.historyError}</div>
-              </div>`
-            : !series || !window
-              ? html`<p class="history-note" role="status">
-                  ${this.t.loadingHistory}
-                </p>`
-              : series.every((s) => s.points.every(([, v]) => v === undefined))
-                ? html`<p class="history-note">${this.t.noHistory}</p>`
-                : chart(
-                    series,
-                    window[0],
-                    window[1],
-                    at,
-                    { number, time, label: `${this.t.history}: ${title}` },
-                    Math.max(280, this.plotWidth),
-                  )
-        }
-      </div>
-      <p class="history-when" aria-live="polite">
-        ${at === undefined ? this.t.now : time(at, false)}
-      </p>
-      <div class="history-legend">
-        ${(series ?? []).map((s) => {
+    const t = historyStrings(this.hass);
+    const f = historyFormat(this.hass);
+    // The tapped reading's unit goes left.
+    const leftUnit = (series: Series[]) => series[0]?.unit;
+    return historyDialog<Series[]>(this.history, {
+      strings: t,
+      format: f,
+      subtitle: title,
+      isEmpty: (series) =>
+        series.every((s) => s.points.every(([, v]) => v === undefined)),
+      chart: (series, [start, end], hover, width) =>
+        lineChart(
+          series,
+          start,
+          end,
+          hover,
+          { number: f.number, time: f.time, label: `${t.history}: ${title}` },
+          { width, leftUnit: leftUnit(series) },
+        ),
+      timeAt: (e, svg, [start, end], series) =>
+        lineChartTimeAt(
+          e,
+          svg,
+          start,
+          end,
+          units(series, leftUnit(series))[1] !== undefined,
+        ),
+      legend: (series, at) =>
+        series.map((s) => {
           const value =
             at === undefined
               ? s.points[s.points.length - 1]?.[1]
               : valueAt(s, at);
-          return html`<button
-            class="history-item series-${s.color}"
-            data-series=${s.entityId}
-            @click=${() => {
-              close();
-              this.moreInfo(s.entityId);
-            }}
-          >
-            <span class="swatch" aria-hidden="true"></span>
-            <span class="label">${this.friendly(s.entityId)}</span>
-            <strong
-              >${value === undefined ? "—" : `${this.number(value, 2)}${s.unit ? ` ${s.unit}` : ""}`}</strong
-            >
-          </button>`;
-        })}
-      </div>
-    </dialog>`;
+          return {
+            entityId: s.entityId,
+            name: this.friendly(s.entityId),
+            color: s.color,
+            value:
+              value === undefined
+                ? "—"
+                : `${this.number(value, 2)}${s.unit ? ` ${s.unit}` : ""}`,
+          };
+        }),
+      select: (id) => this.moreInfo(id),
+    });
   }
-
   private renderLevels(
     levels: StateNode[][],
     path: string[],
@@ -886,7 +764,7 @@ export class HouseStateCard extends LitElement {
         >${this.header(this.config?.name || this.t.title, true)}
         ${this.renderOutside()}
         <div class="error">${this.t.missing}: ${this.config?.entity || ""}</div>
-        ${this.historyDialog(this.config?.name || this.t.title)}</ha-card
+        ${this.renderHistory(this.config?.name || this.t.title)}</ha-card
       >`;
     const a = entity.attributes;
     const cfg: RuntimeConfig = a.config || {
@@ -902,7 +780,7 @@ export class HouseStateCard extends LitElement {
         <div class="error">
           ${this.t.missing}: ${this.config.entity} (${entity.state})
         </div>
-        ${this.historyDialog(this.config?.name || this.t.title)}</ha-card
+        ${this.renderHistory(this.config?.name || this.t.title)}</ha-card
       >`;
     const path: string[] = a.active_path || [];
     const overlays: Overlay[] = a.overlays || cfg.overlays || [];
@@ -982,7 +860,7 @@ export class HouseStateCard extends LitElement {
           : nothing
       }
       ${this.renderApply(a, overlays, disabled)} ${this.renderFeedback(current)}
-      ${this.historyDialog(title)}
+      ${this.renderHistory(title)}
     </ha-card>`;
   }
 }

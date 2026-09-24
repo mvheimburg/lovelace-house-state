@@ -383,10 +383,11 @@ it("explains a failed history request in Bokmål", async () => {
     .querySelector<HTMLButtonElement>('[data-sensor="sensor.outdoor"]')!
     .click();
   await vi.waitFor(() =>
-    expect(text(root.querySelector("#history [role=alert]"))).toBe(
+    expect(text(root.querySelector("#history [role=alert] span"))).toBe(
       "Kunne ikke hente historikk: Recorder is off",
     ),
   );
+  expect(text(root.querySelector("#history [data-retry]"))).toBe("Prøv igjen");
   expect(Array.from(root.querySelectorAll("[data-range]")).map(text)).toEqual([
     "6 t",
     "24 t",
@@ -426,4 +427,42 @@ it("keeps the settings cog and the top section when the house entity is missing"
   void el;
   expect(root.querySelector('a[aria-label="Settings"]')).not.toBeNull();
   expect(root.querySelector('[data-sensor="sensor.outdoor"]')).not.toBeNull();
+});
+
+it("opens Home Assistant's own history instead when the card is set to", async () => {
+  const { el, root, history } = await mount({
+    sensors: ["sensor.outdoor", "sensor.indoor"],
+    history: "more-info",
+  });
+  const info: string[] = [];
+  el.addEventListener("hass-more-info", (e) =>
+    info.push((e as CustomEvent).detail.entityId),
+  );
+  root
+    .querySelector<HTMLButtonElement>('[data-sensor="sensor.indoor"]')!
+    .click();
+  await el.updateComplete;
+  expect(info).toEqual(["sensor.indoor"]);
+  expect(history).not.toHaveBeenCalled();
+  expect(root.querySelector<HTMLDialogElement>("#history")!.open).toBe(false);
+
+  el.setConfig({
+    type: "custom:lovelace-house-state-card",
+    entity: "sensor.house_state",
+    sensors: ["sensor.outdoor", "sensor.indoor"],
+    history: "panel",
+  });
+  await el.updateComplete;
+  const moves: string[] = [];
+  const listen = () => moves.push(location.pathname + location.search);
+  window.addEventListener("location-changed", listen);
+  const before = location.href;
+  root
+    .querySelector<HTMLButtonElement>('[data-sensor="sensor.outdoor"]')!
+    .click();
+  window.removeEventListener("location-changed", listen);
+  expect(moves[0]).toMatch(
+    /^\/history\?entity_id=sensor\.outdoor%2Csensor\.indoor&start_date=/,
+  );
+  window.history.replaceState(null, "", before);
 });

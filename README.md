@@ -29,6 +29,7 @@ show_forecast: false # the coming days under the weather
 sensors: # optional tiles, each opening its history
   - sensor.outdoor_temperature
   - sensor.living_room_co2
+history: card # or more-info, or panel (Home Assistant's History page)
 ```
 
 All card display options are available in the Lovelace visual editor. The integration starts with a Home/Day/Activity example, but none of those names or levels are special.
@@ -55,6 +56,16 @@ Both parts are optional and set in the card editor; without them the card looks 
 - **Weather.** Pick any `weather.*` entity. The card shows the condition, the entity's name, the current temperature and today's high and low. Tap it for Home Assistant's weather details. **Show forecast** (off by default) adds the coming five days with their condition, high and low. The forecast comes from Home Assistant's forecast subscription, so it works with any weather integration that offers a daily or a day-and-night forecast; without one, the high and low are left out.
 - **Sensors.** Pick any sensors, such as the outdoor temperature, CO₂ or indoor humidity. Each is a tile with its icon, name and value as Home Assistant formats it; an unavailable sensor is marked.
 - **History.** A measured sensor tile opens a history in the card's own style: the tapped reading together with the card's other sensors in its unit, and those in one more unit on a right-hand scale (a third unit is left out). Choose 6 h, 24 h or 7 d, read every value under the pointer, and tap a legend entry for its details. Spells when a sensor was unavailable are gaps. A tile that is not a measurement (a text or timestamp sensor) opens Home Assistant's details instead, since a line adds nothing there.
+
+- **History view** (0.8.0): where a sensor tile opens its history. **In the card**
+  (default) is the chart above, now with a translucent fill under each line;
+  **Home Assistant's details** opens the standard more-info dialog with its own
+  graph; **Home Assistant's History page** opens `/history` with the tapped sensor
+  and its related readings over the last 24 hours. The history view is shared
+  with our other cards through
+  [lovelace-card-history](https://github.com/mvheimburg/lovelace-card-history),
+  which this card bundles; in the dialog, **Try again** reloads after a failure,
+  and closing it returns focus to the tile you tapped.
 
 ![History of the outdoor temperature on a dark Bubble card, with the living-room temperature and CO₂ on a second scale](images/history.png)
 
