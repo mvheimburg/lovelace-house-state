@@ -1,6 +1,6 @@
 {
   "name": "lovelace-house-state",
-  "version": "0.8.0",
+  "version": "0.8.1",
   "description": "Lovelace card for the House State integration",
   "type": "module",
   "scripts": {
@@ -26,6 +26,6 @@
     "vitest": "^5.0.1"
   },
   "dependencies": {
-    "lovelace-card-history": "github:mvheimburg/lovelace-card-history#v0.1.1"
+    "lovelace-card-history": "file:vendor/lovelace-card-history-0.2.0.tgz"
   }
 }
